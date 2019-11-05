@@ -2,7 +2,7 @@ package be.uliege.uce.smartgps.service;
 
 import android.app.IntentService;
 import android.content.Intent;
-import android.support.v4.content.LocalBroadcastManager;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.google.android.gms.location.ActivityRecognitionResult;
 import com.google.android.gms.location.DetectedActivity;
@@ -34,6 +34,7 @@ public class DetectedActivitiesIntentService extends IntentService {
             ArrayList<DetectedActivity> detectedActivities = (ArrayList) result.getProbableActivities();
             if (detectedActivities != null && detectedActivities.size() > 0) {
                 sensor.setActivity(detectedActivities.get(0).getType());
+                sensor.setActivityConfidence(detectedActivities.get(0).getConfidence());
             }
         }
         broadcastActivity(sensor);

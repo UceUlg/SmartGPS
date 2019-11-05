@@ -13,12 +13,12 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.NonNull;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -54,7 +54,7 @@ import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
-import java.sql.Timestamp;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -70,6 +70,7 @@ import be.uliege.uce.smartgps.service.DetectedActivitiesService;
 import be.uliege.uce.smartgps.service.GoogleLocationService;
 import be.uliege.uce.smartgps.service.LocationService;
 import be.uliege.uce.smartgps.service.MainService;
+import be.uliege.uce.smartgps.service.NotificationOneSignal;
 import be.uliege.uce.smartgps.service.SensorService;
 import be.uliege.uce.smartgps.utilities.Constants;
 import be.uliege.uce.smartgps.utilities.DataSession;
@@ -79,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
+    private int RECORD_AUDIO = 0;
     private static final int REQUEST_CHECK_SETTINGS = 0x1;
     private static GoogleApiClient mGoogleApiClient;
     private static final int ACCESS_FINE_LOCATION_INTENT_ID = 3;
@@ -96,6 +98,16 @@ public class MainActivity extends AppCompatActivity {
     private TextView txtSync;
     private TextView txtVerify;
     private TextView txtTime;
+    //
+    private TextView txtProximity;
+    private TextView txtLuminosity;
+    private TextView txtStepCounter;
+    private TextView txtBattery;
+    private TextView txtTemperature;
+    private TextView txtWeather;
+    private TextView txtConfidencePercentage;
+    private TextView txtSound;
+    //
     private FloatingActionButton btnUpdate;
 
     private BroadcastReceiver broadcastReceiverActivity;
@@ -112,6 +124,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
         txtGyroscope = findViewById(R.id.txtGyroscope);
         txtAccelerometer = findViewById(R.id.txtAccelerometer);
@@ -126,6 +139,16 @@ public class MainActivity extends AppCompatActivity {
         txtVerify = findViewById(R.id.txtVerify);
         txtTime = findViewById(R.id.txtTime);
         btnUpdate = findViewById(R.id.btnUpdate);
+        //
+        txtProximity = findViewById(R.id.txtProximity);
+        txtLuminosity = findViewById(R.id.txtLuminosity);
+        txtStepCounter = findViewById(R.id.txtStepCounter);
+        txtBattery = findViewById(R.id.txtBattery);
+        txtTemperature = findViewById(R.id.txtTemperature);
+        txtWeather = findViewById(R.id.txtWeather);
+        txtConfidencePercentage = findViewById(R.id.txtConfidencePercentage);
+        txtSound = findViewById(R.id.txtSound);
+        //
 
         User user = new Gson().fromJson(DataSession.returnDataSession(getApplicationContext(), Constants.INFO_SESSION_KEY), User.class);
         txtUserInfo.setText(user.getNombres() + "\n" + user.getCorreoElectronico());
@@ -233,22 +256,38 @@ public class MainActivity extends AppCompatActivity {
 
     private void checkPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) { //Version 6 Marshmallow o superior
-            if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                requestLocationPermission();
-            } else {
-                showSettingDialog();
+            int persmission_all=1;
+            String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.RECORD_AUDIO};
+            if(!hasPermissions(this,permissions)){
+                ActivityCompat.requestPermissions(this,permissions,persmission_all);
             }
-        } else
+//            if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+//                requestLocationPermission();
+//            } else {
+//                showSettingDialog();
+//            }
+        }else
             showSettingDialog();
     }
 
-    private void requestLocationPermission() {
-        if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)) {
-            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, ACCESS_FINE_LOCATION_INTENT_ID);
-        } else {
-            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, ACCESS_FINE_LOCATION_INTENT_ID);
+    public static boolean hasPermissions(Context context, String...permissions){
+        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.M &&context!=null&& permissions!=null){
+            for (String permission:permissions){
+                if(ActivityCompat.checkSelfPermission(context,permission)!= PackageManager.PERMISSION_GRANTED){
+                    return false;
+                }
+            }
         }
+        return true;
     }
+
+//    private void requestLocationPermission() {
+//        if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+//            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, ACCESS_FINE_LOCATION_INTENT_ID);
+//        } else {
+//            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, ACCESS_FINE_LOCATION_INTENT_ID);
+//        }
+//    }
 
     private void showSettingDialog() {
         LocationRequest locRequestHighAccuracy = LocationRequest.create();
@@ -358,6 +397,17 @@ public class MainActivity extends AppCompatActivity {
         txtVelocity.setText(getString(R.string.lblTxtNoInformation));
         txtActivity.setText(getString(R.string.lblTxtNoInformation));
         txtAltitude.setText(getString(R.string.lblTxtNoInformation));
+        //
+        txtProximity.setText(getString(R.string.lblTxtNoInformation));
+        txtLuminosity.setText(getString(R.string.lblTxtNoInformation));
+        txtStepCounter.setText(getString(R.string.lblTxtNoInformation));
+        txtBattery.setText(getString(R.string.lblTxtNoInformation));
+        txtTemperature.setText(getString(R.string.lblTxtNoInformation));
+        txtWeather.setText(getString(R.string.lblTxtNoInformation));
+        txtConfidencePercentage.setText(getString(R.string.lblTxtNoInformation));
+        txtSound.setText(R.string.lblTxtNoInformation);
+        final DecimalFormat df = new DecimalFormat("#.#####");
+        //
 
         broadcastReceiverSensor = new BroadcastReceiver() {
             @Override
@@ -374,8 +424,48 @@ public class MainActivity extends AppCompatActivity {
                         sensorObject.setGrsY(sensor.getGrsY());
                         sensorObject.setGrsZ(sensor.getGrsZ());
                     }
-                    txtAccelerometer.setText("X: " + sensorObject.getAclX() + "\nY: " + sensorObject.getAclY() + "\nZ: " + sensorObject.getAclZ());
-                    txtGyroscope.setText("X: " + sensorObject.getGrsX() + "\nY: " + sensorObject.getGrsY() + "\nZ: " + sensorObject.getGrsZ());
+                    //
+                    if (sensor.getProximity() != null && !sensor.getProximity().equals("null")){
+                        sensorObject.setProximity(sensor.getProximity());
+                        if (sensor.getProximity() == 0){
+                            NotificationOneSignal nos = new NotificationOneSignal();
+                            nos.sendNotification();
+                        }
+                    }
+
+                    if (sensor.getLuminosity() != null && !sensor.getLuminosity().equals("null"))
+                        sensorObject.setLuminosity(sensor.getLuminosity());
+
+                    if (sensor.getStepCounter() != null && !sensor.getStepCounter().equals("null"))
+                        sensorObject.setStepCounter(sensor.getStepCounter());
+
+                    if (sensor.getBattery() != null && !sensor.getBattery().equals("null"))
+                        sensorObject.setBattery(sensor.getBattery());
+
+                    if(sensor.getSound() != null && !sensor.getSound().equals("null"))
+                        sensorObject.setSound(sensor.getSound());
+
+                    if(sensorObject.getAclX() != null && !sensorObject.getAclX().equals("null")
+                            && sensorObject.getAclY() != null && !sensorObject.getAclY().equals("null")
+                            && sensorObject.getAclZ() != null && !sensorObject.getAclZ().equals("null")){
+                        txtAccelerometer.setText("X: " + df.format(sensorObject.getAclX()) + "\nY: " + df.format(sensorObject.getAclY()) + "\nZ: " + df.format(sensorObject.getAclZ()));
+                    }
+
+                    if(sensorObject.getGrsX() != null && !sensorObject.getGrsX().equals("null")
+                            && sensorObject.getGrsY() != null && !sensorObject.getGrsY().equals("null")
+                            && sensorObject.getGrsZ() != null && !sensorObject.getGrsZ().equals("null")){
+                        txtGyroscope.setText("X: " + df.format(sensorObject.getGrsX()) + "\nY: " + df.format(sensorObject.getGrsY()) + "\nZ: " + df.format(sensorObject.getGrsZ()));
+                    }
+                    //
+                    txtProximity.setText(String.valueOf(sensorObject.getProximity()));
+                    txtLuminosity.setText(String.valueOf(sensorObject.getLuminosity()));
+                    txtStepCounter.setText(String.valueOf(sensorObject.getStepCounter()));
+                    txtBattery.setText(String.valueOf(sensorObject.getBattery())+"%");
+
+                    if(sensorObject.getSound() != null && !sensorObject.getSound().equals("null"))
+                        txtSound.setText(String.valueOf(df.format(sensorObject.getSound()))+" dB");
+
+                    //
                 }
             }
         };
@@ -388,7 +478,8 @@ public class MainActivity extends AppCompatActivity {
                     sensorObject.setAccuracy(sensor.getAccuracy());
                     sensorObject.setnSatellites(sensor.getnSatellites());
                     txtNSatellites.setText(sensorObject.getnSatellites().toString());
-                    txtAccuracy.setText(sensorObject.getAccuracy().toString());
+                    if(sensorObject.getAccuracy() != null && !sensorObject.getAccuracy().equals("null"))
+                        txtAccuracy.setText(df.format(sensorObject.getAccuracy()).toString());
                 }
             }
         };
@@ -403,9 +494,19 @@ public class MainActivity extends AppCompatActivity {
                     sensorObject.setLatitude(sensor.getLatitude());
                     sensorObject.setAltitude(sensor.getAltitude());
 
-                    txtGpsInfo.setText(getString(R.string.lblTxtGpsInfoLon) + sensorObject.getLongitude() + "\n" +
-                            getString(R.string.lblTxtGpsInfoLat) + sensorObject.getLatitude());
-                    txtVelocity.setText(sensorObject.getVelocity().toString());
+                    if (sensor.getTemperature() != null && !sensor.getTemperature().equals("null")) {
+                        sensorObject.setTemperature(sensor.getTemperature());
+                        sensorObject.setWeather(sensor.getWeather());
+                        sensorObject.setCity(sensor.getCity());
+                        txtWeather.setText(sensor.getWeather());
+                        txtTemperature.setText(String.valueOf(sensorObject.getTemperature())+" ºC, "+sensorObject.getCity());
+                    }
+
+                    if(sensorObject.getLongitude() != null && !sensorObject.getLongitude().equals("null")
+                            && sensorObject.getLatitude() != null && !sensorObject.getLatitude().equals("null"))
+                        txtGpsInfo.setText(getString(R.string.lblTxtGpsInfoLon) + df.format(sensorObject.getLongitude()) + "\t\t" +
+                                getString(R.string.lblTxtGpsInfoLat) + df.format(sensorObject.getLatitude()));
+                    txtVelocity.setText(df.format(sensorObject.getVelocity()).toString());
                     txtAltitude.setText(sensorObject.getAltitude().toString());
 
                     txtSync.setText(getString(R.string.lblTxtSync) + dbSensor.getAllData().size());
@@ -421,7 +522,9 @@ public class MainActivity extends AppCompatActivity {
                     Sensor sensor = (Sensor) intent.getSerializableExtra(Constants.DETECTED_ACTIVITY);
                     if (sensor != null && sensor.getActivity() != null) {
                         sensorObject.setActivity(sensor.getActivity());
+                        sensorObject.setActivityConfidence(sensor.getActivityConfidence());
                         txtActivity.setText(Utilidades.getActivityLabel(sensorObject.getActivity() != null ? sensorObject.getActivity() : DetectedActivity.UNKNOWN));
+                        txtConfidencePercentage.setText(String.valueOf(sensorObject.getActivityConfidence())+"%");
                     }
                 }
             }
@@ -450,7 +553,10 @@ public class MainActivity extends AppCompatActivity {
                         sensorObject.setAltitude(sensor.getAltitude());
 
                         txtVelocity.setText(sensorObject.getVelocity() != null ? sensorObject.getVelocity().toString() : "");
-                        txtGpsInfo.setText(getString(R.string.lblTxtGpsInfoLon) + sensorObject.getLongitude() + "\n" + getString(R.string.lblTxtGpsInfoLat) + sensorObject.getLatitude());
+                        if(sensorObject.getLongitude() != null && !sensorObject.getLongitude().equals("null")
+                                && sensorObject.getLatitude() != null && !sensorObject.getLatitude().equals("null"))
+                            txtGpsInfo.setText(getString(R.string.lblTxtGpsInfoLon) + df.format(sensorObject.getLongitude()) + "\t\t" +
+                                    getString(R.string.lblTxtGpsInfoLat) + df.format(sensorObject.getLatitude()));
 
                     }
                 }

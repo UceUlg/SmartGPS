@@ -1,11 +1,16 @@
 package be.uliege.uce.smartgps.activities;
 
+import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.SystemClock;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+
 import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
@@ -39,6 +44,12 @@ public class SplashActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.splash_main);
+
+//        int persmission_all=1;
+//        String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.RECORD_AUDIO};
+//        if(!hasPermissions(this,permissions)){
+//            ActivityCompat.requestPermissions(this,permissions,persmission_all);
+//        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {//Version 5 o superior
             Window window = this.getWindow();
@@ -124,4 +135,15 @@ public class SplashActivity extends AppCompatActivity {
         };
         queue.add(postRequest);
     }
+
+//    public static boolean hasPermissions(Context context, String...permissions){
+//        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.M &&context!=null&& permissions!=null){
+//            for (String permission:permissions){
+//                if(ActivityCompat.checkSelfPermission(context,permission)!= PackageManager.PERMISSION_GRANTED){
+//                    return false;
+//                }
+//            }
+//        }
+//        return true;
+//    }
 }

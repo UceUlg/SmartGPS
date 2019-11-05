@@ -12,8 +12,8 @@ import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.SystemClock;
-import android.support.annotation.Nullable;
-import android.support.v4.content.LocalBroadcastManager;
+import androidx.annotation.Nullable;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -124,6 +124,23 @@ public class MainService extends Service {
                         sensorObject.setGrsY(sensor.getGrsY());
                         sensorObject.setGrsZ(sensor.getGrsZ());
                     }
+                    //
+                    if (sensor.getProximity() != null && !sensor.getProximity().equals("null"))
+                        sensorObject.setProximity(sensor.getProximity());
+
+                    if (sensor.getLuminosity() != null && !sensor.getLuminosity().equals("null"))
+                        sensorObject.setLuminosity(sensor.getLuminosity());
+
+                    if (sensor.getStepCounter() != null && !sensor.getStepCounter().equals("null"))
+                        sensorObject.setStepCounter(sensor.getStepCounter());
+
+                    if (sensor.getBattery() != null && !sensor.getBattery().equals("null"))
+                        sensorObject.setBattery(sensor.getBattery());
+
+                    if(sensor.getSound() != null && !sensor.getSound().equals("null"))
+                        sensorObject.setSound(sensor.getSound());
+
+                    //
 
                 }
             }
@@ -155,6 +172,11 @@ public class MainService extends Service {
                     sensorObject.setVelocity(sensor.getVelocity());
                     sensorObject.setLongitude(sensor.getLongitude());
                     sensorObject.setLatitude(sensor.getLatitude());
+                    if (sensor.getTemperature() != null && !sensor.getTemperature().equals("null")) {
+                        sensorObject.setTemperature(sensor.getTemperature());
+                    }
+                    sensorObject.setWeather(sensor.getWeather());
+                    sensorObject.setCity(sensor.getCity());
                 }
             }
         };
@@ -167,7 +189,7 @@ public class MainService extends Service {
 
                     Sensor sensor = (Sensor) intent.getSerializableExtra(Constants.DETECTED_ACTIVITY);
                     sensorActual.setActivity(sensor.getActivity());
-
+                    sensorActual.setActivityConfidence(sensor.getActivityConfidence());
                 }
             }
         };
@@ -242,6 +264,7 @@ public class MainService extends Service {
         sensorObject.setDateInsert(new Timestamp(System.currentTimeMillis()));
         sensorObject.setDateUpdate(new Timestamp(System.currentTimeMillis()));
         sensorObject.setActivity(sensorActual.getActivity());
+        sensorObject.setActivityConfidence(sensorActual.getActivityConfidence());
         sensorObject.setAltitude(sensorActual.getAltitude());
 
         LocationManager manager = (LocationManager) getSystemService(LOCATION_SERVICE);
@@ -342,6 +365,10 @@ public class MainService extends Service {
         if(Utilidades.setSensorObject(sensorObject, sensorOld)) {
 
             dbSensor.insertData(new Gson().toJson(sensorObject));
+            System.out.println("*************************************************************");
+            System.out.println(sensorObject);
+            System.out.println(new Gson().toJson(sensorObject));
+            System.out.println("*************************************************************");
             Log.i(TAG+".processData", String.valueOf("Count: "+dbSensor.countRowsData()+" - "+sensorObject.toString()));
             executeTask();
             count = 0;

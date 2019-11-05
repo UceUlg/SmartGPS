@@ -21,6 +21,14 @@
     <string name="lblVelocity">Velocity</string>
     <string name="lblActivity">Activity</string>
     <string name="lblAltitude">Altitude</string>
+    <string name="lblProximity">Proximity</string>
+    <string name="lblLuminosity">Luminosity</string>
+    <string name="lblWeather">Weather</string>
+    <string name="lblStepCounter">Step Counter</string>
+    <string name="lblBattery">Battery</string>
+    <string name="lblTemperature">Temperature</string>
+    <string name="lblConfidencePercentage">Confidence</string>
+    <string name="lblSound">Sound</string>
     <string name="lblTxtVerifyOk">Active Account</string>
     <string name="lblTxtVerifyNoOk">Inactive Account. Check your email to confirm the account. If you do not find it, check spam or verify that the email you entered is correct! The information will not be synchronized until you confirm your data.</string>
     <string name="act_main_no_acuracy">Not enough Accuracy</string>

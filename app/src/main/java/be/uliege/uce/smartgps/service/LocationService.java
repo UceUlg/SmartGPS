@@ -6,6 +6,8 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.GpsSatellite;
 import android.location.GpsStatus;
 import android.location.Location;
@@ -15,12 +17,25 @@ import android.location.LocationProvider;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.LocalBroadcastManager;
+import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 
 import be.uliege.uce.smartgps.R;
 import be.uliege.uce.smartgps.activities.MainActivity;
@@ -37,6 +52,12 @@ public class LocationService extends Service implements GpsStatus.Listener, Loca
 
     private int nsat, msat;
     private String providerSelect;
+    private RequestQueue queue;
+
+    private Double temperature;
+    private String locality;
+    private String description;
+    private String [] temporal = new String[3];
 
     IBinder mBinder = new LocationService.LocalBinder();
 
@@ -81,6 +102,7 @@ public class LocationService extends Service implements GpsStatus.Listener, Loca
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.i(TAG, "onStartCommand");
         super.onStartCommand(intent, flags, startId);
+        queue = Volley.newRequestQueue(this);
         return START_STICKY;
     }
 
@@ -126,6 +148,16 @@ public class LocationService extends Service implements GpsStatus.Listener, Loca
         if(location != null) {
             sensor.setLatitude(location.getLatitude());
             sensor.setLongitude(location.getLongitude());
+            String [] valor = apiWeather(location.getLatitude(), location.getLongitude());
+            if (valor[0] != null && !valor[0].equals("null")
+                    && valor[1] != null && !valor[1].equals("null")
+                    && valor[2] != null && !valor[2].equals("null")){
+                long i = Math.round(Double.parseDouble(valor[0]));
+                int temp = (int)i;
+                sensor.setTemperature(temp);
+                sensor.setWeather(valor[1]);
+                sensor.setCity(valor[2]);
+            }
             sensor.setVelocity(location.getSpeed());
             sensor.setAltitude(location.getAltitude());
             broadcastActivityLocation(sensor);
@@ -167,6 +199,66 @@ public class LocationService extends Service implements GpsStatus.Listener, Loca
         Intent intent = new Intent(Constants.GPS_ACTIVITY);
         intent.putExtra(Constants.GPS_ACTIVITY, sensor);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+    }
+
+    public String [] apiWeather(Double lat, Double lon){
+
+        String cityNow = cityService(lat, lon);
+        if(cityNow != null && !cityNow.equals("null")){
+            String url = "https://api.openweathermap.org/data/2.5/weather?q="+cityNow+"&appid=3f4998721d5fd526ab894777bf0e63ff";
+
+            JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+
+                @Override
+                public void onResponse(JSONObject response) {
+                    //final double temp;
+                    try{
+                        JSONObject arrayTemperatura = response.getJSONObject("main");
+                        JSONArray arrayClima = response.getJSONArray("weather");
+                        JSONObject object = arrayClima.getJSONObject(0);
+                        temperature = arrayTemperatura.getDouble("temp");
+                        description = object.getString("main");
+                        temperature = temperature - 273.15;
+                        String city = response.getString("name");
+                        String piv = String.valueOf(temperature);
+                        temporal[0] = piv;
+                        temporal[1] = description;
+                        temporal[2] = city;
+                    }catch (JSONException e){
+                        e.printStackTrace();
+                    }
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                }
+            });
+            queue.add(request);
+        }
+
+        return temporal;
+    }
+
+    public String cityService(Double lat, Double lon){
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+        final List<Address> addresses;
+
+        try{
+            if (lat != null && lon != null){
+                addresses = geocoder.getFromLocation(lat,lon,10);
+                if (addresses.size() > 0){
+                    for (Address adr : addresses){
+                        if (adr.getLocality() != null && adr.getLocality().length() >0){
+                            locality = adr.getLocality();
+                            break;
+                        }
+                    }
+                }
+            }
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+        return locality;
     }
 
 }

@@ -28,10 +28,26 @@ public class Sensor implements Serializable {
     private Double hDop;
     private Double vDpo;
 
+    //
+    private Integer activityConfidence;
+    private Float proximity;
+    private Float luminosity;
+    private Float stepCounter;
+    private Integer battery;
+    private Integer temperature;
+    private String weather;
+    private String city;
+    private Double sound;
+    //
+
     public Sensor() {
     }
 
-    public Sensor(Float grsX, Float grsY, Float grsZ, Float aclX, Float aclY, Float aclZ, Integer nSatellites, Double latitude, Double longitude, Double altitude, Float velocity, Integer activity, Double dop, Double hDop, Double vDpo, Double accuracy, Timestamp dateInsert, Timestamp dateUpdate, Integer providerStatus, Integer providerStatusUpdate, Integer dspId) {
+    public Sensor(Float grsX, Float grsY, Float grsZ, Float aclX, Float aclY, Float aclZ, Integer nSatellites, Double latitude,
+                  Double longitude, Double altitude, Float velocity, Integer activity, Double dop, Double hDop, Double vDpo,
+                  Double accuracy, Timestamp dateInsert, Timestamp dateUpdate, Integer providerStatus, Integer providerStatusUpdate,
+                  Integer dspId, Float proximity, Float luminosity, Float stepCounter, Integer battery, Integer temperature,
+                  String weather, String city, Integer activityConfidence, Double sound) {
         this.grsX = grsX;
         this.grsY = grsY;
         this.grsZ = grsZ;
@@ -53,6 +69,15 @@ public class Sensor implements Serializable {
         this.providerStatus = providerStatus;
         this.providerStatusUpdate = providerStatusUpdate;
         this.dspId = dspId;
+        this.proximity = proximity;
+        this.luminosity = luminosity;
+        this.stepCounter = stepCounter;
+        this.battery = battery;
+        this.temperature = temperature;
+        this.weather = weather;
+        this.city = city;
+        this.activityConfidence = activityConfidence;
+        this.sound = sound;
     }
 
     public Float getGrsX() {
@@ -215,6 +240,78 @@ public class Sensor implements Serializable {
         this.providerStatusUpdate = providerStatusUpdate;
     }
 
+    public Float getProximity() {
+        return proximity;
+    }
+
+    public void setProximity(Float proximity) {
+        this.proximity = proximity;
+    }
+
+    public Float getLuminosity() {
+        return luminosity;
+    }
+
+    public void setLuminosity(Float luminosity) {
+        this.luminosity = luminosity;
+    }
+
+    public Float getStepCounter() {
+        return stepCounter;
+    }
+
+    public void setStepCounter(Float stepCounter) {
+        this.stepCounter = stepCounter;
+    }
+
+    public Integer getBattery() {
+        return battery;
+    }
+
+    public void setBattery(Integer battery) {
+        this.battery = battery;
+    }
+
+    public Integer getTemperature() {
+        return temperature;
+    }
+
+    public void setTemperature(Integer temperature) {
+        this.temperature = temperature;
+    }
+
+    public String getWeather() {
+        return weather;
+    }
+
+    public void setWeather(String weather) {
+        this.weather = weather;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public Integer getActivityConfidence() {
+        return activityConfidence;
+    }
+
+    public void setActivityConfidence(Integer activityConfidence) {
+        this.activityConfidence = activityConfidence;
+    }
+
+    public Double getSound() {
+        return sound;
+    }
+
+    public void setSound(Double sound) {
+        this.sound = sound;
+    }
+
     public Integer getDspId() {
         return dspId;
     }
@@ -247,6 +344,15 @@ public class Sensor implements Serializable {
                 ", dop=" + dop +
                 ", hDop=" + hDop +
                 ", vDpo=" + vDpo +
+                ", activityConfidence=" + activityConfidence +
+                ", proximity=" + proximity +
+                ", luminosity=" + luminosity +
+                ", stepCounter=" + stepCounter +
+                ", battery=" + battery +
+                ", temperature=" + temperature +
+                ", weather='" + weather + '\'' +
+                ", city='" + city + '\'' +
+                ", sound=" + sound +
                 '}';
     }
 }

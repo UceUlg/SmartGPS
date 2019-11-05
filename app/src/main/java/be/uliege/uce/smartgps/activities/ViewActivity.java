@@ -13,13 +13,13 @@ import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.core.content.ContextCompat;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.LayoutInflater;
@@ -74,6 +74,7 @@ public class ViewActivity extends AppCompatActivity {
 
     public static final String TAG = ViewActivity.class.getSimpleName();
 
+    private int RECORD_AUDIO = 0;
     private static final int REQUEST_CHECK_SETTINGS = 0x1;
     private static final int ACCESS_FINE_LOCATION_INTENT_ID = 3;
     private static final String BROADCAST_ACTION = "android.location.PROVIDERS_CHANGED";
@@ -113,22 +114,38 @@ public class ViewActivity extends AppCompatActivity {
 
     private void checkPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) { //Version 6 Marshmallow o superior
-            if (ContextCompat.checkSelfPermission(ViewActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                requestLocationPermission();
-            } else {
-                showSettingDialog();
+            int persmission_all=1;
+            String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.RECORD_AUDIO};
+            if(!hasPermissions(this,permissions)){
+                ActivityCompat.requestPermissions(this,permissions,persmission_all);
             }
-        } else
+//            if (ContextCompat.checkSelfPermission(ViewActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+//                requestLocationPermission();
+//            } else {
+//                showSettingDialog();
+//            }
+        }else
             showSettingDialog();
     }
 
-    private void requestLocationPermission() {
-        if (ActivityCompat.shouldShowRequestPermissionRationale(ViewActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)) {
-            ActivityCompat.requestPermissions(ViewActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, ACCESS_FINE_LOCATION_INTENT_ID);
-        } else {
-            ActivityCompat.requestPermissions(ViewActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, ACCESS_FINE_LOCATION_INTENT_ID);
+    public static boolean hasPermissions(Context context, String...permissions){
+        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.M &&context!=null&& permissions!=null){
+            for (String permission:permissions){
+                if(ActivityCompat.checkSelfPermission(context,permission)!= PackageManager.PERMISSION_GRANTED){
+                    return false;
+                }
+            }
         }
+        return true;
     }
+
+//    private void requestLocationPermission() {
+//        if (ActivityCompat.shouldShowRequestPermissionRationale(ViewActivity.this, Manifest.permission.ACCESS_FINE_LOCATION)) {
+//            ActivityCompat.requestPermissions(ViewActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, ACCESS_FINE_LOCATION_INTENT_ID);
+//        } else {
+//            ActivityCompat.requestPermissions(ViewActivity.this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, ACCESS_FINE_LOCATION_INTENT_ID);
+//        }
+//    }
 
     private void showSettingDialog() {
         LocationRequest locRequestHighAccuracy = LocationRequest.create();
