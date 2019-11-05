@@ -18,7 +18,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
-import androidx.core.content.ContextCompat;
 import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.util.Patterns;
@@ -74,7 +73,6 @@ public class ViewActivity extends AppCompatActivity {
 
     public static final String TAG = ViewActivity.class.getSimpleName();
 
-    private int RECORD_AUDIO = 0;
     private static final int REQUEST_CHECK_SETTINGS = 0x1;
     private static final int ACCESS_FINE_LOCATION_INTENT_ID = 3;
     private static final String BROADCAST_ACTION = "android.location.PROVIDERS_CHANGED";
