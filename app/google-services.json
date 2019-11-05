@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "489849055916",
+    "firebase_url": "https://smartgps-v2.firebaseio.com",
+    "project_id": "smartgps-v2",
+    "storage_bucket": "smartgps-v2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:489849055916:android:b6cc29d5c9b9276491cd09",
+        "android_client_info": {
+          "package_name": "be.uliege.uce.smartgps"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "489849055916-dbjjtknv8vo4f3b61iutvnrhb4eakhlh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBrlARL8Gx4wAqcfV5ev4MdZ5_Dc-Ue1Ow"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "489849055916-dbjjtknv8vo4f3b61iutvnrhb4eakhlh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
