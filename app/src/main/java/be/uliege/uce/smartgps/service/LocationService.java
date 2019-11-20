@@ -15,6 +15,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.location.LocationProvider;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import androidx.annotation.Nullable;
@@ -168,8 +169,13 @@ public class LocationService extends Service implements GpsStatus.Listener, Loca
     public void onProviderDisabled(String provider) {
         Log.i(TAG, "onProviderDisabled: " + provider);
         NotificationUtils mNotificationUtils = new NotificationUtils(this);
-        Notification.Builder nb = mNotificationUtils. getAndroidChannelNotification(getString(R.string.msgTittleNotification) + provider + ".!", getString(R.string.msgBodyNotification1) + provider + getString(R.string.msgBodyNotification2), MainActivity.class);
-        mNotificationUtils.getManager().notify(101, nb.build());
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Notification.Builder nb = mNotificationUtils. getAndroidChannelNotification(getString(R.string.msgTittleNotification) + provider + ".!", getString(R.string.msgBodyNotification1) + provider + getString(R.string.msgBodyNotification2), MainActivity.class);
+            mNotificationUtils.getManager().notify(101, nb.build());
+        }else{
+            mNotificationUtils.notificationAndroid(getString(R.string.msgTittleNotification) + provider + ".!", getString(R.string.msgBodyNotification1) + provider + getString(R.string.msgBodyNotification2), MainActivity.class);
+        }
+
     }
 
     @Override

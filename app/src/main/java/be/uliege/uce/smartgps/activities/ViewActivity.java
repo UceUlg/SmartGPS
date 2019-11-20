@@ -10,6 +10,8 @@ import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -67,6 +69,7 @@ import be.uliege.uce.smartgps.entities.User;
 import be.uliege.uce.smartgps.utilities.Constants;
 import be.uliege.uce.smartgps.utilities.CustomViewPager;
 import be.uliege.uce.smartgps.utilities.DataSession;
+import be.uliege.uce.smartgps.utilities.NetworkChangeReceiver;
 import be.uliege.uce.smartgps.utilities.Utilidades;
 
 public class ViewActivity extends AppCompatActivity {
@@ -84,9 +87,15 @@ public class ViewActivity extends AppCompatActivity {
     public static List<Questions> answersList;
 
     public static int answerCheck;
+    public int check;
 
     public static Context mContext;
     public static Activity mActivity;
+
+    private BroadcastReceiver mNetworkReceiver;
+
+    private TextView txtNetwork;
+    private ImageView imgNetwork;
 
 
     @Override
@@ -95,12 +104,18 @@ public class ViewActivity extends AppCompatActivity {
         setContentView(R.layout.activity_view);
         mContext = getApplicationContext();
         mActivity = ViewActivity.this;
-        answerCheck = 0;
-        Map<String, String> params = new HashMap<>();
-        params.put("type", "questionsWithoutSession");
-        loadQuestions(params);
-        initGoogleAPIClient();
-        checkPermissions();
+        check = 0;
+        mNetworkReceiver = new NetworkChangeReceiver();
+        registerNetworkBroadcastForNougat();
+        txtNetwork = findViewById(R.id.network);
+        imgNetwork = findViewById(R.id.imgNetwork);
+//        Map<String, String> params = new HashMap<>();
+//        params.put("type", "questionsWithoutSession");
+//        loadQuestions(params);
+//        initGoogleAPIClient();
+//        checkPermissions();
+        time time = new time();
+        time.execute();
     }
 
     private void initGoogleAPIClient() {
@@ -113,7 +128,7 @@ public class ViewActivity extends AppCompatActivity {
     private void checkPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) { //Version 6 Marshmallow o superior
             int persmission_all=1;
-            String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.RECORD_AUDIO};
+            String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION};
             if(!hasPermissions(this,permissions)){
                 ActivityCompat.requestPermissions(this,permissions,persmission_all);
             }
@@ -252,6 +267,7 @@ public class ViewActivity extends AppCompatActivity {
         super.onDestroy();
         if (gpsLocationReceiver != null)
             unregisterReceiver(gpsLocationReceiver);
+        unregisterNetworkChanges();
     }
 
 
@@ -394,6 +410,8 @@ public class ViewActivity extends AppCompatActivity {
                         params.put("dspSdkInt", String.valueOf(Build.VERSION.SDK_INT));
                         params.put("answers", new Gson().toJson(answersList));
                         insertData(params, btnEnd);
+                    }else {
+                        btnEnd.setVisibility(View.VISIBLE);
                     }
                 }
             });
@@ -679,6 +697,7 @@ public class ViewActivity extends AppCompatActivity {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         Toast.makeText(getApplicationContext(), getString(R.string.msgErrorServerResponse), Toast.LENGTH_SHORT).show();
+                        Log.d(TAG + ".onResponseLQ param", params.toString());
                     }
                 }
         ) {
@@ -690,5 +709,51 @@ public class ViewActivity extends AppCompatActivity {
         queue.add(postRequest);
     }
 
+    private void registerNetworkBroadcastForNougat() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            registerReceiver(mNetworkReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            registerReceiver(mNetworkReceiver, new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION));
+        }
+    }
 
+    protected void unregisterNetworkChanges() {
+        try {
+            unregisterReceiver(mNetworkReceiver);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public final void ejecutar(){
+
+        Map<String, String> params = new HashMap<>();
+        params.put("type", "questionsWithoutSession");
+        loadQuestions(params);
+        initGoogleAPIClient();
+        checkPermissions();
+        txtNetwork.setVisibility(View.GONE);
+        imgNetwork.setVisibility(View.GONE);
+    }
+
+    public class time extends AsyncTask<Void,Integer,Boolean>{
+        @Override
+        protected void onPostExecute(Boolean aBoolean) {
+            ejecutar();
+        }
+
+        @Override
+        protected Boolean doInBackground(Void... voids) {
+            NetworkChangeReceiver nc = new NetworkChangeReceiver();
+        while(nc.isOnline(getApplicationContext()) == false){
+            if(check == 0){
+                txtNetwork.setVisibility(View.VISIBLE);
+                imgNetwork.setVisibility(View.VISIBLE);
+                check=check+1;
+            }
+        }
+            return true;
+        }
+    }
 }

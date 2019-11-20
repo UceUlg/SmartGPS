@@ -37,7 +37,6 @@ public class Sensor implements Serializable {
     private Integer temperature;
     private String weather;
     private String city;
-    private Double sound;
     //
 
     public Sensor() {
@@ -47,7 +46,7 @@ public class Sensor implements Serializable {
                   Double longitude, Double altitude, Float velocity, Integer activity, Double dop, Double hDop, Double vDpo,
                   Double accuracy, Timestamp dateInsert, Timestamp dateUpdate, Integer providerStatus, Integer providerStatusUpdate,
                   Integer dspId, Float proximity, Float luminosity, Float stepCounter, Integer battery, Integer temperature,
-                  String weather, String city, Integer activityConfidence, Double sound) {
+                  String weather, String city, Integer activityConfidence) {
         this.grsX = grsX;
         this.grsY = grsY;
         this.grsZ = grsZ;
@@ -77,7 +76,6 @@ public class Sensor implements Serializable {
         this.weather = weather;
         this.city = city;
         this.activityConfidence = activityConfidence;
-        this.sound = sound;
     }
 
     public Float getGrsX() {
@@ -304,14 +302,6 @@ public class Sensor implements Serializable {
         this.activityConfidence = activityConfidence;
     }
 
-    public Double getSound() {
-        return sound;
-    }
-
-    public void setSound(Double sound) {
-        this.sound = sound;
-    }
-
     public Integer getDspId() {
         return dspId;
     }
@@ -352,7 +342,6 @@ public class Sensor implements Serializable {
                 ", temperature=" + temperature +
                 ", weather='" + weather + '\'' +
                 ", city='" + city + '\'' +
-                ", sound=" + sound +
                 '}';
     }
 }

@@ -3,7 +3,7 @@
     <string name="app_name">SmartGPS </string>
 
     <!-- activity_view.xml -->
-    <string name="appbar_scrolling_view_behavior" translatable="false">android.support.design.widget.AppBarLayout$ScrollingViewBehavior</string>>
+    <string name="appbar_scrolling_view_behavior" translatable="false">com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior</string>>
 
     <!-- fragment_main.xml -->
     <string name="lblTxtDescription">Description</string>
@@ -24,11 +24,10 @@
     <string name="lblProximity">Proximité</string>
     <string name="lblLuminosity">Luminosité</string>
     <string name="lblWeather">Climat</string>
-    <string name="lblStepCounter">Nº Démarches</string>
+    <string name="lblStepCounter">Démarches</string>
     <string name="lblBattery">Batterie</string>
     <string name="lblTemperature">Température</string>
     <string name="lblConfidencePercentage">Confiance</string>
-    <string name="lblSound">Son</string>
     <string name="lblTxtVerifyOk">Active Account</string>
     <string name="lblTxtVerifyNoOk">Inactive Account. Check your email to confirm the account. If you do not find it, check spam or verify that the email you entered is correct! The information will not be synchronized until you confirm your data.</string>
     <string name="act_main_no_acuracy">Not enough Accuracy</string>
@@ -51,6 +50,7 @@
 
     <!-- SplashActivity ViewActivity MainActivity-->
     <string name="msgErrorServerResponse">Ops! Something went wrong. Check your Internet connection!!</string>
+    <string name="msgEnableNetwork">Activer la connexion Internet</string>
 
     <!-- MainActivity -->
     <string name="msgManualSync">Wait a moment...</string>

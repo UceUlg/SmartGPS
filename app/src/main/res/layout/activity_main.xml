@@ -93,7 +93,7 @@
                             <LinearLayout
                                 android:layout_weight="1"
                                 android:layout_width="match_parent"
-                                android:layout_height="match_parent"
+                                android:layout_height="wrap_content"
                                 android:orientation="vertical">
 
                                 <TextView
@@ -122,7 +122,7 @@
                             <LinearLayout
                                 android:layout_weight="1"
                                 android:layout_width="match_parent"
-                                android:layout_height="match_parent"
+                                android:layout_height="wrap_content"
                                 android:orientation="vertical">
 
                                 <TextView
@@ -153,7 +153,7 @@
 
                         <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"
+                            android:layout_height="wrap_content"
                             android:orientation="horizontal">
 
                             <LinearLayout
@@ -216,7 +216,7 @@
 
                         <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"
+                            android:layout_height="wrap_content"
                             android:orientation="horizontal">
 
                             <LinearLayout
@@ -307,7 +307,7 @@
 
                         <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"
+                            android:layout_height="wrap_content"
                             android:orientation="horizontal">
 
                             <LinearLayout
@@ -360,6 +360,33 @@
                                     android:padding="5dp" />
                             </LinearLayout>
 
+                            <View
+                                android:layout_width="2dp"
+                                android:layout_height="match_parent"
+                                android:background="?android:attr/listDivider" />
+
+                            <LinearLayout
+                                android:layout_weight="1"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center_horizontal"
+                                    android:padding="5dp"
+                                    android:text="@string/lblBattery"
+                                    android:textAppearance="?android:attr/textAppearanceLarge"/>
+                                <TextView
+                                    android:id="@+id/txtBattery"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_gravity="center_vertical"
+                                    android:textAlignment="center"
+                                    android:padding="5dp"/>
+
+                            </LinearLayout>
+
                         </LinearLayout>
 
                         <View
@@ -369,7 +396,7 @@
 
                         <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"
+                            android:layout_height="wrap_content"
                             android:orientation="horizontal">
 
                             <LinearLayout
@@ -431,7 +458,7 @@
 
                         <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"
+                            android:layout_height="wrap_content"
                             android:orientation="horizontal">
 
                             <LinearLayout
@@ -475,67 +502,6 @@
                                     android:textAppearance="?android:attr/textAppearanceLarge"/>
                                 <TextView
                                     android:id="@+id/txtLuminosity"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_gravity="center_vertical"
-                                    android:textAlignment="center"
-                                    android:padding="5dp"/>
-
-                            </LinearLayout>
-
-                        </LinearLayout>
-
-                        <View
-                            android:layout_width="match_parent"
-                            android:layout_height="2dp"
-                            android:background="?android:attr/listDivider" />
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent"
-                            android:orientation="horizontal">
-
-                            <LinearLayout
-                                android:layout_weight="1"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:orientation="vertical">
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_gravity="center_horizontal"
-                                    android:padding="5dp"
-                                    android:text="@string/lblBattery"
-                                    android:textAppearance="?android:attr/textAppearanceLarge"/>
-                                <TextView
-                                    android:id="@+id/txtBattery"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_gravity="center_vertical"
-                                    android:textAlignment="center"
-                                    android:padding="5dp"/>
-
-                            </LinearLayout>
-
-                            <View
-                                android:layout_width="2dp"
-                                android:layout_height="match_parent"
-                                android:background="?android:attr/listDivider" />
-
-                            <LinearLayout
-                                android:layout_weight="1"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:orientation="vertical">
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_gravity="center_horizontal"
-                                    android:padding="5dp"
-                                    android:text="@string/lblSound"
-                                    android:textAppearance="?android:attr/textAppearanceLarge"/>
-                                <TextView
-                                    android:id="@+id/txtSound"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
                                     android:layout_gravity="center_vertical"

@@ -14,13 +14,13 @@ import org.json.JSONObject;
 
 import java.sql.Timestamp;
 
+import be.uliege.uce.smartgps.activities.MainActivity;
 import be.uliege.uce.smartgps.entities.User;
-
+import be.uliege.uce.smartgps.service.NotificationOneSignal;
 
 public class NotificationAction extends Application {
 
-    private String notificationID;
-    private String respuesta;
+    private String notificationID = "";
     private String pregunta;
     private User user = new User();
 
@@ -57,20 +57,35 @@ public class NotificationAction extends Application {
                 for (int i = 0; i < array.length(); i++) {
                     try{
                         JSONObject objectButton = array.getJSONObject(i);
+                        int time = (int) (System.currentTimeMillis());
+                        Timestamp tsTemp = new Timestamp(time);
                         if(result.action.actionID.equals(objectButton.getString("id"))){
-                            respuesta = objectButton.getString("text");
+                            String respuesta = objectButton.getString("text");
+                            NotificationOneSignal nos = new NotificationOneSignal();
+                            if(respuesta.equals("Si")){
+                                if(pregunta.equals("¿El sensor está tapado?")){
+                                    nos.sendSecondNotification(1);
+                                }else if(pregunta.equals("¿Está en movimiento?")){
+                                    nos.sendSecondNotification(2);
+                                }else if(pregunta.equals("¿Está detenido?")){
+                                    nos.sendSecondNotification(3);
+                                }
+                            }
+
+                            Toast.makeText(getApplicationContext(),
+                                    "IdUser: "+user.getDspId()+" Pregunta: "+pregunta+" FechaResp: "+tsTemp+
+                                            "IdNoti: "+notificationID+" texto: "+respuesta, Toast.LENGTH_SHORT).show();
                         }
+                        MainActivity ma = new MainActivity();
+                        ma.checkNotification(0);
                     }catch (JSONException e){
                         e.printStackTrace();
                     }
                 }
+            }else{
+                MainActivity ma = new MainActivity();
+                ma.checkNotification(0);
             }
-            int time = (int) (System.currentTimeMillis());
-            Timestamp tsTemp = new Timestamp(time);
-
-            Toast.makeText(getApplicationContext(),
-                    "IdUser: "+user.getDspId()+" Pregunta: "+pregunta+" FechaResp: "+tsTemp+
-                    "IdNoti: "+notificationID+" texto: "+respuesta, Toast.LENGTH_SHORT).show();
         }
     }
 }

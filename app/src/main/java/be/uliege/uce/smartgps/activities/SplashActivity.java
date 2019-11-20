@@ -71,8 +71,8 @@ public class SplashActivity extends AppCompatActivity {
                 SystemClock.sleep(1000);
                 Intent intent = new Intent(SplashActivity.this, classInit);
                 startActivity(intent);
-                finish();
-            }
+                finish();}
+           // }
         }, Constants.SPLASH_TIME_IN_MILLISECONDS);
     }
 

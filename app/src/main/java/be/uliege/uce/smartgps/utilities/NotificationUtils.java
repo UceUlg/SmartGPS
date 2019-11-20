@@ -62,18 +62,31 @@ public class NotificationUtils extends ContextWrapper {
                     .setSmallIcon(android.R.drawable.stat_notify_more)
                     .setAutoCancel(true);
         }else{
-            NotificationCompat.Builder mBuilder =new NotificationCompat.Builder(getApplicationContext())
-                    .setContentIntent(PendingIntent.getActivity(getApplicationContext(), 0, new Intent(getApplicationContext(), classOpen), 0))
-                    .setSmallIcon(R.mipmap.ic_launcher)
-                    .setContentTitle(title)
-                    .setContentText(body)
-                    .setVibrate(new long[] {100, 250, 100, 500})
-                    .setAutoCancel(true);
-
-            NotificationManager mNotifyMgr =(NotificationManager) getApplicationContext().getSystemService(NOTIFICATION_SERVICE);
-            mNotifyMgr.notify(1, mBuilder.build());
+//            NotificationCompat.Builder mBuilder =new NotificationCompat.Builder(getApplicationContext())
+//                    .setContentIntent(PendingIntent.getActivity(getApplicationContext(), 0, new Intent(getApplicationContext(), classOpen), 0))
+//                    .setSmallIcon(R.mipmap.ic_launcher)
+//                    .setContentTitle(title)
+//                    .setContentText(body)
+//                    .setVibrate(new long[] {100, 250, 100, 500})
+//                    .setAutoCancel(true);
+//
+//            NotificationManager mNotifyMgr =(NotificationManager) getApplicationContext().getSystemService(NOTIFICATION_SERVICE);
+//            mNotifyMgr.notify(1, mBuilder.build());
+            return null;
         }
-        return null;
+    }
+
+    public void notificationAndroid(String title, String body, Class<?> classOpen){
+        NotificationCompat.Builder mBuilder =new NotificationCompat.Builder(getApplicationContext())
+                .setContentIntent(PendingIntent.getActivity(getApplicationContext(), 0, new Intent(getApplicationContext(), classOpen), 0))
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle(title)
+                .setContentText(body)
+                .setVibrate(new long[] {100, 250, 100, 500})
+                .setAutoCancel(true);
+
+        NotificationManager mNotifyMgr =(NotificationManager) getApplicationContext().getSystemService(NOTIFICATION_SERVICE);
+        mNotifyMgr.notify(1, mBuilder.build());
     }
 
 }

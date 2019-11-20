@@ -83,6 +83,8 @@ public class MainActivity extends AppCompatActivity {
     private static GoogleApiClient mGoogleApiClient;
     private static final int ACCESS_FINE_LOCATION_INTENT_ID = 3;
     private static final String BROADCAST_ACTION = "android.location.PROVIDERS_CHANGED";
+    static final int DEFAULT_CHECK = 0;
+    static int check = 0;
 
     private TextView txtGyroscope;
     private TextView txtAccelerometer;
@@ -104,7 +106,6 @@ public class MainActivity extends AppCompatActivity {
     private TextView txtTemperature;
     private TextView txtWeather;
     private TextView txtConfidencePercentage;
-    private TextView txtSound;
     //
     private FloatingActionButton btnUpdate;
 
@@ -145,7 +146,6 @@ public class MainActivity extends AppCompatActivity {
         txtTemperature = findViewById(R.id.txtTemperature);
         txtWeather = findViewById(R.id.txtWeather);
         txtConfidencePercentage = findViewById(R.id.txtConfidencePercentage);
-        txtSound = findViewById(R.id.txtSound);
         //
 
         User user = new Gson().fromJson(DataSession.returnDataSession(getApplicationContext(), Constants.INFO_SESSION_KEY), User.class);
@@ -255,7 +255,7 @@ public class MainActivity extends AppCompatActivity {
     private void checkPermissions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) { //Version 6 Marshmallow o superior
             int persmission_all=1;
-            String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.RECORD_AUDIO};
+            String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION};
             if(!hasPermissions(this,permissions)){
                 ActivityCompat.requestPermissions(this,permissions,persmission_all);
             }
@@ -403,7 +403,6 @@ public class MainActivity extends AppCompatActivity {
         txtTemperature.setText(getString(R.string.lblTxtNoInformation));
         txtWeather.setText(getString(R.string.lblTxtNoInformation));
         txtConfidencePercentage.setText(getString(R.string.lblTxtNoInformation));
-        txtSound.setText(R.string.lblTxtNoInformation);
         final DecimalFormat df = new DecimalFormat("#.#####");
         //
 
@@ -426,8 +425,11 @@ public class MainActivity extends AppCompatActivity {
                     if (sensor.getProximity() != null && !sensor.getProximity().equals("null")){
                         sensorObject.setProximity(sensor.getProximity());
                         if (sensor.getProximity() == 0){
-                            NotificationOneSignal nos = new NotificationOneSignal();
-                            nos.sendNotification();
+                            int ch = checkNotification(1);
+                            if(ch < 2){
+                                NotificationOneSignal nos = new NotificationOneSignal();
+                                nos.sendFirstNotification(1);
+                            }
                         }
                     }
 
@@ -440,8 +442,8 @@ public class MainActivity extends AppCompatActivity {
                     if (sensor.getBattery() != null && !sensor.getBattery().equals("null"))
                         sensorObject.setBattery(sensor.getBattery());
 
-                    if(sensor.getSound() != null && !sensor.getSound().equals("null"))
-                        sensorObject.setSound(sensor.getSound());
+//                    if(sensor.getSound() != null && !sensor.getSound().equals("null"))
+//                        sensorObject.setSound(sensor.getSound());
 
                     if(sensorObject.getAclX() != null && !sensorObject.getAclX().equals("null")
                             && sensorObject.getAclY() != null && !sensorObject.getAclY().equals("null")
@@ -459,9 +461,6 @@ public class MainActivity extends AppCompatActivity {
                     txtLuminosity.setText(String.valueOf(sensorObject.getLuminosity()));
                     txtStepCounter.setText(String.valueOf(sensorObject.getStepCounter()));
                     txtBattery.setText(String.valueOf(sensorObject.getBattery())+"%");
-
-                    if(sensorObject.getSound() != null && !sensorObject.getSound().equals("null"))
-                        txtSound.setText(String.valueOf(df.format(sensorObject.getSound()))+" dB");
 
                     //
                 }
@@ -505,7 +504,7 @@ public class MainActivity extends AppCompatActivity {
                         txtGpsInfo.setText(getString(R.string.lblTxtGpsInfoLon) + df.format(sensorObject.getLongitude()) + "\t\t" +
                                 getString(R.string.lblTxtGpsInfoLat) + df.format(sensorObject.getLatitude()));
                     txtVelocity.setText(df.format(sensorObject.getVelocity()).toString());
-                    txtAltitude.setText(sensorObject.getAltitude().toString());
+                    txtAltitude.setText(df.format(sensorObject.getAltitude()).toString());
 
                     txtSync.setText(getString(R.string.lblTxtSync) + dbSensor.getAllData().size());
                     txtTime.setText(new Date().toString());
@@ -523,6 +522,8 @@ public class MainActivity extends AppCompatActivity {
                         sensorObject.setActivityConfidence(sensor.getActivityConfidence());
                         txtActivity.setText(Utilidades.getActivityLabel(sensorObject.getActivity() != null ? sensorObject.getActivity() : DetectedActivity.UNKNOWN));
                         txtConfidencePercentage.setText(String.valueOf(sensorObject.getActivityConfidence())+"%");
+                        NotificationOneSignal nos = new NotificationOneSignal();
+                        nos.notificationActivity(sensor.getActivity());
                     }
                 }
             }
@@ -562,7 +563,6 @@ public class MainActivity extends AppCompatActivity {
         };
         startTracking();
     }
-
 
     private void startTracking() {
 
@@ -637,6 +637,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         registerReceiver(gpsLocationReceiver, new IntentFilter(BROADCAST_ACTION));
+        //dn.startMicrophone();
     }
 
     @Override
@@ -659,6 +660,15 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
+    }
+
+    public int checkNotification (int valor){
+        if(valor == 1){
+            check = check + valor;
+        }else if(valor == 0) {
+            check = DEFAULT_CHECK;
+        }
+        return check;
     }
 
 }

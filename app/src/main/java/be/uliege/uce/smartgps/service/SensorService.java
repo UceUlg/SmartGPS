@@ -19,7 +19,6 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
 
 import be.uliege.uce.smartgps.utilities.Constants;
-import be.uliege.uce.smartgps.utilities.DetectNoise;
 
 
 public class SensorService extends Service implements SensorEventListener {
@@ -34,17 +33,6 @@ public class SensorService extends Service implements SensorEventListener {
     private Sensor mSensorLuminosity;
     private Sensor mSensorStepCount;
     private BatteryManager mBattery;
-
-    private static final int POLL_INTERVAL = 300;
-    private Handler mHandler = new Handler();
-    private DetectNoise mSensor;
-    private Double amp;
-    private Runnable mPollTask = new Runnable() {
-        public void run() {
-            amp = mSensor.getAmplitude();
-            mHandler.postDelayed(mPollTask, POLL_INTERVAL);
-        }
-    };
 
     private RequestQueue queue;
 
@@ -63,9 +51,6 @@ public class SensorService extends Service implements SensorEventListener {
     @Override
     public void onCreate() {
         super.onCreate();
-
-        mSensor = new DetectNoise();
-        start();
     }
 
     @Override
@@ -146,8 +131,6 @@ public class SensorService extends Service implements SensorEventListener {
         mBattery = (BatteryManager)getSystemService(BATTERY_SERVICE);
         sensor.setBattery(mBattery.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY));
 
-
-        sensor.setSound(amp);
         //
 
         broadcastSensor(sensor);
@@ -164,9 +147,4 @@ public class SensorService extends Service implements SensorEventListener {
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
-    private void start() {
-
-        mSensor.start(this);
-        mHandler.postDelayed(mPollTask, POLL_INTERVAL);
-    }
 }

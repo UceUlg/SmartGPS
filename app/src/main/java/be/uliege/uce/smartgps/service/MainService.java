@@ -10,6 +10,7 @@ import android.content.IntentFilter;
 import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Binder;
+import android.os.Build;
 import android.os.IBinder;
 import android.os.SystemClock;
 import androidx.annotation.Nullable;
@@ -69,7 +70,8 @@ public class MainService extends Service {
     private SQLiteController dbSensor;
 
     private NotificationUtils mNotificationUtils;
-
+    private int DEFAULT_NOTIFY = 0;
+    private int notify = 0;
     private Map<String, String> dataSync;
 
     IBinder mBinder = new MainService.LocalBinder();
@@ -137,8 +139,8 @@ public class MainService extends Service {
                     if (sensor.getBattery() != null && !sensor.getBattery().equals("null"))
                         sensorObject.setBattery(sensor.getBattery());
 
-                    if(sensor.getSound() != null && !sensor.getSound().equals("null"))
-                        sensorObject.setSound(sensor.getSound());
+//                    if(sensor.getSound() != null && !sensor.getSound().equals("null"))
+//                        sensorObject.setSound(sensor.getSound());
 
                     //
 
@@ -273,8 +275,14 @@ public class MainService extends Service {
         }else{
             sensorObject.setProviderStatus(Constants.PROVIDER_OFF);
 
-            Notification.Builder nb = mNotificationUtils. getAndroidChannelNotification("¡GPS deshabilitado.!", "Active el GPS para continuar con la recolección de información.", MainActivity.class);
-            mNotificationUtils.getManager().notify(101, nb.build());
+//            Notification.Builder nb = mNotificationUtils. getAndroidChannelNotification("¡GPS deshabilitado.!", "Active el GPS para continuar con la recolección de información.", MainActivity.class);
+//            mNotificationUtils.getManager().notify(101, nb.build());
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                Notification.Builder nb = mNotificationUtils. getAndroidChannelNotification("¡GPS deshabilitado.!", "Active el GPS para continuar con la recolección de información.", MainActivity.class);
+                mNotificationUtils.getManager().notify(101, nb.build());
+            }else{
+                mNotificationUtils.notificationAndroid("¡GPS deshabilitado.!", "Active el GPS para continuar con la recolección de información.", MainActivity.class);
+            }
 
         }
 
@@ -386,10 +394,20 @@ public class MainService extends Service {
                     LocationManager manager = (LocationManager) getSystemService(LOCATION_SERVICE);
                     if (manager.isProviderEnabled(LocationManager.GPS_PROVIDER) == true) {
                         sensor.setProviderStatusUpdate(Constants.PROVIDER_ON);
+                        notify = DEFAULT_NOTIFY;
                     } else {
                         sensor.setProviderStatusUpdate(Constants.PROVIDER_OFF);
-                        Notification.Builder nb = mNotificationUtils.getAndroidChannelNotification("¡GPS deshabilitado.!", "Active el GPS para continuar con la recolección de información.", MainActivity.class);
-                        mNotificationUtils.getManager().notify(101, nb.build());
+//                        Notification.Builder nb = mNotificationUtils.getAndroidChannelNotification("¡GPS deshabilitado.!", "Active el GPS para continuar con la recolección de información.", MainActivity.class);
+//                        mNotificationUtils.getManager().notify(101, nb.build());
+                        notify = notify + 1;
+                        if(notify == 1){
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                Notification.Builder nb = mNotificationUtils. getAndroidChannelNotification("¡GPS deshabilitado.!", "Active el GPS para continuar con la recolección de información.", MainActivity.class);
+                                mNotificationUtils.getManager().notify(101, nb.build());
+                            }else{
+                                mNotificationUtils.notificationAndroid("¡GPS deshabilitado.!", "Active el GPS para continuar con la recolección de información.", MainActivity.class);
+                            }
+                        }
                     }
                     dbSensor.updateData(lastId, new Gson().toJson(sensor));
                 }
