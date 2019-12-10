@@ -696,8 +696,11 @@ public class ViewActivity extends AppCompatActivity {
                 new com.android.volley.Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        Toast.makeText(getApplicationContext(), getString(R.string.msgErrorServerResponse), Toast.LENGTH_SHORT).show();
+//                        Toast.makeText(getApplicationContext(), getString(R.string.msgErrorServerResponse), Toast.LENGTH_SHORT).show();
                         Log.d(TAG + ".onResponseLQ param", params.toString());
+//                        closeApplication();
+                        Intent i = new Intent(ViewActivity.this, ViewActivity.class);
+                        startActivity(i);
                     }
                 }
         ) {

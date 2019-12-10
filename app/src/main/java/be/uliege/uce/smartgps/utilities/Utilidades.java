@@ -88,6 +88,8 @@ public class Utilidades {
                 if(sensorOld.getLatitude() != null && sensorOld.getLongitude() != null){
                     if(sensor.getLatitude() != sensorOld.getLatitude() || sensor.getLongitude() != sensorOld.getLongitude()){
                         return true;
+                    }else if(sensor.getLatitude() == sensorOld.getLatitude() && sensor.getLongitude() == sensorOld.getLongitude() && sensor.getActivity() != sensorOld.getActivity()){
+                        return true;
                     }
                 }else{
                     return true;

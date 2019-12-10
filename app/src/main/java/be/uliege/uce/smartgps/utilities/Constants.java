@@ -20,6 +20,13 @@ public class Constants {
 
     public static final int SPLASH_TIME_IN_MILLISECONDS = 2000;
 
+    //Tiempo para lanzar la notificación inicial en minutos
+    public static final int TIME_FIRST_NOTIFICATION = 5;
+    //Tiempo de espera para la respuesta inicial en minutos
+    public static final int TIME_WITHOUT_ANSWER_NOTIFICATION = 15;
+    //Tiempo de espera lanzar una nueva notificación inicial en minutos
+    public static final int TIME_NEW_NOTIFICATION = 60;
+
     public static String INFO_SESSION_KEY = "INFO_SESSION_KEY";
 
     public static Integer PROVIDER_ON = 1;
@@ -33,4 +40,8 @@ public class Constants {
     public static String URL_CONSUMMER = URL_SERVER+URL_SERVICE_SMART_GPS+"/consummer.php";
 
     public static int TIME_RECOVER = 30;
+
+    public static int FIRST_NOTIFICATION = 5;
+    public static int UNANSWERED_NOTIFICACION = 15;
+    public static int TIME_NEXT_NOTIFICATION = 60;
 }

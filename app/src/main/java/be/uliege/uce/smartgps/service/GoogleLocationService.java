@@ -31,6 +31,8 @@ public class GoogleLocationService extends Service implements GoogleApiClient.Co
     private Location mLastLocation;
     private LocationRequest mLocationRequest;
 
+    private Double alt;
+
     public GoogleLocationService() {
     }
 

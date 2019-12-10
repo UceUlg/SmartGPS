@@ -83,8 +83,6 @@ public class MainActivity extends AppCompatActivity {
     private static GoogleApiClient mGoogleApiClient;
     private static final int ACCESS_FINE_LOCATION_INTENT_ID = 3;
     private static final String BROADCAST_ACTION = "android.location.PROVIDERS_CHANGED";
-    static final int DEFAULT_CHECK = 0;
-    static int check = 0;
 
     private TextView txtGyroscope;
     private TextView txtAccelerometer;
@@ -120,11 +118,16 @@ public class MainActivity extends AppCompatActivity {
 
     private SQLiteController dbSensor;
 
+    public static Context mContext;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_main);
+
+        mContext = getApplicationContext();
+
         txtGyroscope = findViewById(R.id.txtGyroscope);
         txtAccelerometer = findViewById(R.id.txtAccelerometer);
         txtNSatellites = findViewById(R.id.txtNSatellites);
@@ -383,7 +386,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
     private void initApp() {
         sensorObject = new Sensor();
 
@@ -422,28 +424,24 @@ public class MainActivity extends AppCompatActivity {
                         sensorObject.setGrsZ(sensor.getGrsZ());
                     }
                     //
+
                     if (sensor.getProximity() != null && !sensor.getProximity().equals("null")){
                         sensorObject.setProximity(sensor.getProximity());
-                        if (sensor.getProximity() == 0){
-                            int ch = checkNotification(1);
-                            if(ch < 2){
-                                NotificationOneSignal nos = new NotificationOneSignal();
-                                nos.sendFirstNotification(1);
-                            }
-                        }
                     }
 
-                    if (sensor.getLuminosity() != null && !sensor.getLuminosity().equals("null"))
+                    if (sensor.getLuminosity() != null && !sensor.getLuminosity().equals("null")){
                         sensorObject.setLuminosity(sensor.getLuminosity());
+                        txtLuminosity.setText(String.valueOf(sensorObject.getLuminosity())+" lx");
+                    }
 
-                    if (sensor.getStepCounter() != null && !sensor.getStepCounter().equals("null"))
+
+                    if (sensor.getStepCounter() != null && !sensor.getStepCounter().equals("null")){
                         sensorObject.setStepCounter(sensor.getStepCounter());
+                        txtStepCounter.setText(String.valueOf(sensorObject.getStepCounter()));
+                    }
 
                     if (sensor.getBattery() != null && !sensor.getBattery().equals("null"))
                         sensorObject.setBattery(sensor.getBattery());
-
-//                    if(sensor.getSound() != null && !sensor.getSound().equals("null"))
-//                        sensorObject.setSound(sensor.getSound());
 
                     if(sensorObject.getAclX() != null && !sensorObject.getAclX().equals("null")
                             && sensorObject.getAclY() != null && !sensorObject.getAclY().equals("null")
@@ -458,10 +456,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                     //
                     txtProximity.setText(String.valueOf(sensorObject.getProximity()));
-                    txtLuminosity.setText(String.valueOf(sensorObject.getLuminosity()));
-                    txtStepCounter.setText(String.valueOf(sensorObject.getStepCounter()));
                     txtBattery.setText(String.valueOf(sensorObject.getBattery())+"%");
-
                     //
                 }
             }
@@ -500,11 +495,14 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     if(sensorObject.getLongitude() != null && !sensorObject.getLongitude().equals("null")
-                            && sensorObject.getLatitude() != null && !sensorObject.getLatitude().equals("null"))
+                            && sensorObject.getLatitude() != null && !sensorObject.getLatitude().equals("null")){
                         txtGpsInfo.setText(getString(R.string.lblTxtGpsInfoLon) + df.format(sensorObject.getLongitude()) + "\t\t" +
                                 getString(R.string.lblTxtGpsInfoLat) + df.format(sensorObject.getLatitude()));
+                    }else{
+                        txtGpsInfo.setText("no hay");
+                    }
                     txtVelocity.setText(df.format(sensorObject.getVelocity()).toString());
-                    txtAltitude.setText(df.format(sensorObject.getAltitude()).toString());
+                    txtAltitude.setText(df.format(sensorObject.getAltitude()).toString() + " m");
 
                     txtSync.setText(getString(R.string.lblTxtSync) + dbSensor.getAllData().size());
                     txtTime.setText(new Date().toString());
@@ -522,8 +520,6 @@ public class MainActivity extends AppCompatActivity {
                         sensorObject.setActivityConfidence(sensor.getActivityConfidence());
                         txtActivity.setText(Utilidades.getActivityLabel(sensorObject.getActivity() != null ? sensorObject.getActivity() : DetectedActivity.UNKNOWN));
                         txtConfidencePercentage.setText(String.valueOf(sensorObject.getActivityConfidence())+"%");
-                        NotificationOneSignal nos = new NotificationOneSignal();
-                        nos.notificationActivity(sensor.getActivity());
                     }
                 }
             }
@@ -537,6 +533,7 @@ public class MainActivity extends AppCompatActivity {
                     if (sensor != null && sensor.getLatitude() != null) {
                         if (sensorObject.getLatitude() == null) {
                             sensorObject.setLatitude(sensor.getLatitude());
+
                             txtSync.setText(getString(R.string.lblTxtSync) + dbSensor.getAllData().size());
                             txtTime.setText(new Date().toString());
                         }
@@ -566,11 +563,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void startTracking() {
 
-        Intent intentActivitiesDetected = new Intent(MainActivity.this, DetectedActivitiesIntentService.class);
-        startService(intentActivitiesDetected);
-
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiverActivity, new IntentFilter(Constants.DETECTED_ACTIVITY));
         Intent intentActivities = new Intent(MainActivity.this, DetectedActivitiesService.class);
+        Intent intentActivitiesDetected = new Intent(MainActivity.this, DetectedActivitiesIntentService.class);
+        startService(intentActivitiesDetected);
         startService(intentActivities);
 
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiverSensor, new IntentFilter(Constants.SENSOR_ACTIVITY));
@@ -588,8 +584,8 @@ public class MainActivity extends AppCompatActivity {
 
         Intent intentMain = new Intent(MainActivity.this, MainService.class);
         startService(intentMain);
-    }
 
+    }
 
     private class GetUrlContentTask extends AsyncTask<String, Integer, String> {
         protected String doInBackground(String... urls) {
@@ -653,8 +649,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (gpsLocationReceiver != null)
+        if (gpsLocationReceiver != null){
             unregisterReceiver(gpsLocationReceiver);
+        }
     }
 
     @Override
@@ -662,13 +659,7 @@ public class MainActivity extends AppCompatActivity {
         super.onBackPressed();
     }
 
-    public int checkNotification (int valor){
-        if(valor == 1){
-            check = check + valor;
-        }else if(valor == 0) {
-            check = DEFAULT_CHECK;
-        }
-        return check;
+    public Context consContext (){
+        return mContext;
     }
-
 }

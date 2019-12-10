@@ -32,7 +32,7 @@ public class Sensor implements Serializable {
     private Integer activityConfidence;
     private Float proximity;
     private Float luminosity;
-    private Float stepCounter;
+    private Integer stepCounter;
     private Integer battery;
     private Integer temperature;
     private String weather;
@@ -45,7 +45,7 @@ public class Sensor implements Serializable {
     public Sensor(Float grsX, Float grsY, Float grsZ, Float aclX, Float aclY, Float aclZ, Integer nSatellites, Double latitude,
                   Double longitude, Double altitude, Float velocity, Integer activity, Double dop, Double hDop, Double vDpo,
                   Double accuracy, Timestamp dateInsert, Timestamp dateUpdate, Integer providerStatus, Integer providerStatusUpdate,
-                  Integer dspId, Float proximity, Float luminosity, Float stepCounter, Integer battery, Integer temperature,
+                  Integer dspId, Float proximity, Float luminosity, Integer stepCounter, Integer battery, Integer temperature,
                   String weather, String city, Integer activityConfidence) {
         this.grsX = grsX;
         this.grsY = grsY;
@@ -254,11 +254,11 @@ public class Sensor implements Serializable {
         this.luminosity = luminosity;
     }
 
-    public Float getStepCounter() {
+    public Integer getStepCounter() {
         return stepCounter;
     }
 
-    public void setStepCounter(Float stepCounter) {
+    public void setStepCounter(Integer stepCounter) {
         this.stepCounter = stepCounter;
     }
 

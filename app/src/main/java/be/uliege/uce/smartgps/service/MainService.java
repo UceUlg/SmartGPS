@@ -16,13 +16,6 @@ import android.os.SystemClock;
 import androidx.annotation.Nullable;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.util.Log;
-import android.widget.Toast;
-
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import com.google.gson.Gson;
 
 import java.io.BufferedReader;
@@ -34,24 +27,16 @@ import java.net.ProtocolException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import be.uliege.uce.smartgps.activities.MainActivity;
 import be.uliege.uce.smartgps.dataBase.SQLiteController;
 import be.uliege.uce.smartgps.entities.Sensor;
-import be.uliege.uce.smartgps.entities.User;
 import be.uliege.uce.smartgps.utilities.Constants;
-import be.uliege.uce.smartgps.utilities.DataSession;
 import be.uliege.uce.smartgps.utilities.NotificationUtils;
 import be.uliege.uce.smartgps.utilities.Utilidades;
 
-import static be.uliege.uce.smartgps.utilities.Utilidades.checkSincronizate;
-import static be.uliege.uce.smartgps.utilities.Utilidades.formaterStringTime;
-import static be.uliege.uce.smartgps.utilities.Utilidades.formaterTimeString;
 import static be.uliege.uce.smartgps.utilities.Utilidades.timerInterval;
 
 public class MainService extends Service {
@@ -66,6 +51,7 @@ public class MainService extends Service {
 
     private Sensor sensorObject;
     private Sensor sensorActual;
+    private float varProximity;
 
     private SQLiteController dbSensor;
 
@@ -73,6 +59,9 @@ public class MainService extends Service {
     private int DEFAULT_NOTIFY = 0;
     private int notify = 0;
     private Map<String, String> dataSync;
+
+    static final int DEFAULT_THREAD = 0;
+    static int thread;
 
     IBinder mBinder = new MainService.LocalBinder();
 
@@ -92,7 +81,6 @@ public class MainService extends Service {
         sensorActual = new Sensor();
         dbSensor = new SQLiteController(getApplicationContext());
         mNotificationUtils = new NotificationUtils(this);
-
         startTracking();
         super.onCreate();
     }
@@ -127,23 +115,23 @@ public class MainService extends Service {
                         sensorObject.setGrsZ(sensor.getGrsZ());
                     }
                     //
-                    if (sensor.getProximity() != null && !sensor.getProximity().equals("null"))
+                    if (sensor.getProximity() != null && !sensor.getProximity().equals("null")) {
                         sensorObject.setProximity(sensor.getProximity());
+                        varProximity = sensor.getProximity();
+                    }else {
+                        sensorObject.setProximity(varProximity);
+                    }
 
-                    if (sensor.getLuminosity() != null && !sensor.getLuminosity().equals("null"))
+                    if (sensor.getLuminosity() != null && !sensor.getLuminosity().equals("null")){
                         sensorObject.setLuminosity(sensor.getLuminosity());
+                    }
 
-                    if (sensor.getStepCounter() != null && !sensor.getStepCounter().equals("null"))
+                    if (sensor.getStepCounter() != null && !sensor.getStepCounter().equals("null")){
                         sensorObject.setStepCounter(sensor.getStepCounter());
+                    }
 
                     if (sensor.getBattery() != null && !sensor.getBattery().equals("null"))
                         sensorObject.setBattery(sensor.getBattery());
-
-//                    if(sensor.getSound() != null && !sensor.getSound().equals("null"))
-//                        sensorObject.setSound(sensor.getSound());
-
-                    //
-
                 }
             }
         };
@@ -174,6 +162,7 @@ public class MainService extends Service {
                     sensorObject.setVelocity(sensor.getVelocity());
                     sensorObject.setLongitude(sensor.getLongitude());
                     sensorObject.setLatitude(sensor.getLatitude());
+                    sensorObject.setAltitude(sensor.getAltitude());
                     if (sensor.getTemperature() != null && !sensor.getTemperature().equals("null")) {
                         sensorObject.setTemperature(sensor.getTemperature());
                     }
@@ -205,45 +194,49 @@ public class MainService extends Service {
                     Sensor sensor = (Sensor) intent.getSerializableExtra("googleLocationDate");
 
                     if(sensor != null && sensor.getLatitude()!= null) {
-                        if(sensorObject.getLatitude() == null) {
+                        if(sensorObject.getLatitude() == null || sensorObject.getLatitude().equals("null")) {
                             sensorObject.setLatitude(sensor.getLatitude());
                         }
 
-                        if(sensorObject.getVelocity() == null) {
+                        if(sensorObject.getVelocity() == null || sensorObject.getVelocity().equals("null")) {
                             sensorObject.setVelocity(sensor.getVelocity());
                         }
 
-                        if(sensorObject.getLongitude() == null) {
+                        if(sensorObject.getLongitude() == null || sensorObject.getLongitude().equals("null")) {
                             sensorObject.setLongitude(sensor.getLongitude());
                         }
-                        sensorActual.setAltitude(sensor.getAltitude());
+                        if(sensorObject.getAltitude() == null || sensorObject.getAltitude().equals("null")){
+                            sensorActual.setAltitude(sensor.getAltitude());
+                        }
                     }
                 }
             }
         };
 
-        new Thread(new Runnable() {
-            public void run() {
+        if(checkThread(1) < 2){
+            new Thread(new Runnable() {
+                public void run() {
 
-                int count = 0;
+                    int count = 0;
 
-                while (true) {
+                    while (true) {
 
-                    startTracking();
+                        startTracking();
 
-                    if(count >= Constants.FREQUENCY_SECOND) {
-                        count = processData(count);
-                    }
-                    count = count+1;
+                        if(count >= Constants.FREQUENCY_SECOND) {
+                            count = processData(count);
+                        }
+                        count = count+1;
 
-                    if(timerInterval(new Date(), Constants.TIME_RECOVER)) {
-                        sincronizate();
+                        if(timerInterval(new Date(), Constants.TIME_RECOVER)) {
+//                        sincronizate();
+                            SystemClock.sleep(1000);
+                        }
                         SystemClock.sleep(1000);
                     }
-                    SystemClock.sleep(1000);
                 }
-            }
-        }).start();
+            }).start();
+        }
 
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiverActivity, new IntentFilter(Constants.DETECTED_ACTIVITY));
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiverSensor, new IntentFilter(Constants.SENSOR_ACTIVITY));
@@ -370,12 +363,14 @@ public class MainService extends Service {
             sensorOld = new Gson().fromJson(dbSensor.getData(lastIdOld).getString(1), Sensor.class);
         }
 
-        if(Utilidades.setSensorObject(sensorObject, sensorOld)) {
+        if(sensorObject.getLuminosity() == null){
+            sensorObject.setLuminosity((float)-1);
+        }
 
+        if(Utilidades.setSensorObject(sensorObject, sensorOld)) {
             dbSensor.insertData(new Gson().toJson(sensorObject));
             System.out.println("*************************************************************");
             System.out.println(sensorObject);
-            System.out.println(new Gson().toJson(sensorObject));
             System.out.println("*************************************************************");
             Log.i(TAG+".processData", String.valueOf("Count: "+dbSensor.countRowsData()+" - "+sensorObject.toString()));
             executeTask();
@@ -409,104 +404,118 @@ public class MainService extends Service {
                             }
                         }
                     }
+                    System.out.println("/////////////////////////////////////////////");
+                    System.out.println(sensor);
+                    System.out.println("/////////////////////////////////////////////");
                     dbSensor.updateData(lastId, new Gson().toJson(sensor));
                 }
+                executeTask();
+                count = 0;
             }
         }
         return count;
     }
 
-    public void sendResponse(final Map<String, String> params){
+//    public void sendResponse(final Map<String, String> params){
+//
+//        RequestQueue queue = Volley.newRequestQueue(MainService.this);
+//
+//        StringRequest postRequest = new StringRequest(Request.Method.POST, Constants.URL_CONSUMMER, new com.android.volley.Response.Listener<String>() {
+//
+//            @Override
+//            public void onResponse(String response) {
+//
+//                Log.d(TAG+".onResponse", response);
+//
+//                String palabra = "OK";
+//                boolean resultado = response.contains(palabra);
+//
+//                if(response != null && resultado){
+//                    if(dataSync != null) {
+//
+//                        for (Map.Entry<String, String> entry : dataSync.entrySet()) {
+//                            try {
+//                                dbSensor.deleteData(Integer.parseInt(entry.getKey()));
+//                            } catch (Exception e) {
+//                                Log.e(TAG + ".onResponse", "Error el eliminar por id " + entry.getKey());
+//                            }
+//                        }
+//
+//                      //  final String url = Constants.URL_NOTIFICADOR_TELEGRAM +"?msj="+ (Build.MODEL+" --> Ha sincronizado "+dataSync.size()+" elementos automaticamente "+String.valueOf(new Timestamp(System.currentTimeMillis()))+"." ).replace(" ", "%20");
+//                      //  new Thread(new Runnable() {
+//                      //      public void run(){
+//                      //         new GetUrlContentTask().execute(url);
+//                      //      }
+//                      //  }).start();
+//
+//                        dataSync = null;
+//                        Log.i(TAG+".onResponse", "Sincronizado...");
+//                    }
+//                }else{
+//                    dataSync = null;
+//                    Log.e(TAG+".onResponse", "Error al sincronizar...!");
+//                    Toast.makeText(MainService.this,"Error al sincronizar...!",Toast.LENGTH_SHORT).show();
+//                }
+//
+//            }
+//        },
+//                new com.android.volley.Response.ErrorListener() {
+//                    @Override
+//                    public void onErrorResponse(VolleyError error) {
+//                        Toast.makeText(MainService.this,"¡Ops... Algo salió mal.\nIntenta más tarde!",Toast.LENGTH_SHORT).show();
+//                    }
+//                }
+//        ) {
+//            @Override
+//            protected Map<String, String> getParams() {
+//                return params;
+//            }
+//        };
+//        queue.add(postRequest);
+//    }
 
-        RequestQueue queue = Volley.newRequestQueue(MainService.this);
+//    public void sincronizate(){
+//
+//        User user = new Gson().fromJson(DataSession.returnDataSession(getApplicationContext(), Constants.INFO_SESSION_KEY), User.class);
+//
+//        String timeStart1 = user.getHoraSinc();
+//        String timeEnd1 = "23:59:59";
+//        String timeStart2 = "00:00:00";
+//        String timeEnd2 = "03:00:01";
+//        Date nowDate = formaterStringTime(formaterTimeString(new Date(new Timestamp(System.currentTimeMillis()).getTime())));
+//
+//        if(checkSincronizate(nowDate,
+//                formaterStringTime(timeStart1),
+//                formaterStringTime(timeEnd1),
+//                formaterStringTime(timeStart2),
+//                formaterStringTime(timeEnd2),
+//                dbSensor.countRowsData())){
+//
+//
+//            dataSync =  dbSensor.getAllData();
+//            List<Sensor> positionsSinc = new ArrayList<>();
+//
+//            for(Map.Entry<String, String> entry : dataSync.entrySet()) {
+//                positionsSinc.add(new Gson().fromJson(entry.getValue(), Sensor.class));
+//            }
+//
+//            Log.i(TAG+".sincronizate" , "Sincronization starting... "+String.valueOf(positionsSinc.size())+" - "+new Gson().toJson(positionsSinc));
+//
+//            Map<String, String> params = new HashMap<>();
+//            params.put("type","setInfoSensor");
+//            params.put("dspId",String.valueOf(user.getDspId()));
+//            params.put("sensorInfo",new Gson().toJson(positionsSinc));
+//
+//            sendResponse(params);
+//        }
+//    }
 
-        StringRequest postRequest = new StringRequest(Request.Method.POST, Constants.URL_CONSUMMER, new com.android.volley.Response.Listener<String>() {
-
-            @Override
-            public void onResponse(String response) {
-
-                Log.d(TAG+".onResponse", response);
-
-                String palabra = "OK";
-                boolean resultado = response.contains(palabra);
-
-                if(response != null && resultado){
-                    if(dataSync != null) {
-
-                        for (Map.Entry<String, String> entry : dataSync.entrySet()) {
-                            try {
-                                dbSensor.deleteData(Integer.parseInt(entry.getKey()));
-                            } catch (Exception e) {
-                                Log.e(TAG + ".onResponse", "Error el eliminar por id " + entry.getKey());
-                            }
-                        }
-
-                      //  final String url = Constants.URL_NOTIFICADOR_TELEGRAM +"?msj="+ (Build.MODEL+" --> Ha sincronizado "+dataSync.size()+" elementos automaticamente "+String.valueOf(new Timestamp(System.currentTimeMillis()))+"." ).replace(" ", "%20");
-                      //  new Thread(new Runnable() {
-                      //      public void run(){
-                      //         new GetUrlContentTask().execute(url);
-                      //      }
-                      //  }).start();
-
-                        dataSync = null;
-                        Log.i(TAG+".onResponse", "Sincronizado...");
-                    }
-                }else{
-                    dataSync = null;
-                    Log.e(TAG+".onResponse", "Error al sincronizar...!");
-                    Toast.makeText(MainService.this,"Error al sincronizar...!",Toast.LENGTH_SHORT).show();
-                }
-
-            }
-        },
-                new com.android.volley.Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Toast.makeText(MainService.this,"¡Ops... Algo salió mal.\nIntenta más tarde!",Toast.LENGTH_SHORT).show();
-                    }
-                }
-        ) {
-            @Override
-            protected Map<String, String> getParams() {
-                return params;
-            }
-        };
-        queue.add(postRequest);
-    }
-
-    public void sincronizate(){
-
-        User user = new Gson().fromJson(DataSession.returnDataSession(getApplicationContext(), Constants.INFO_SESSION_KEY), User.class);
-
-        String timeStart1 = user.getHoraSinc();
-        String timeEnd1 = "23:59:59";
-        String timeStart2 = "00:00:00";
-        String timeEnd2 = "03:00:01";
-        Date nowDate = formaterStringTime(formaterTimeString(new Date(new Timestamp(System.currentTimeMillis()).getTime())));
-
-        if(checkSincronizate(nowDate,
-                formaterStringTime(timeStart1),
-                formaterStringTime(timeEnd1),
-                formaterStringTime(timeStart2),
-                formaterStringTime(timeEnd2),
-                dbSensor.countRowsData())){
-
-
-            dataSync =  dbSensor.getAllData();
-            List<Sensor> positionsSinc = new ArrayList<>();
-
-            for(Map.Entry<String, String> entry : dataSync.entrySet()) {
-                positionsSinc.add(new Gson().fromJson(entry.getValue(), Sensor.class));
-            }
-
-            Log.i(TAG+".sincronizate" , "Sincronization starting... "+String.valueOf(positionsSinc.size())+" - "+new Gson().toJson(positionsSinc));
-
-            Map<String, String> params = new HashMap<>();
-            params.put("type","setInfoSensor");
-            params.put("dspId",String.valueOf(user.getDspId()));
-            params.put("sensorInfo",new Gson().toJson(positionsSinc));
-
-            sendResponse(params);
+    public int checkThread (int valor){
+        if(valor == 1){
+            thread = thread + valor;
+        }else if(valor == 0) {
+            thread = DEFAULT_THREAD;
         }
+        return thread;
     }
 }

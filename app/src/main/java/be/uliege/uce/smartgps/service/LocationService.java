@@ -52,6 +52,7 @@ public class LocationService extends Service implements GpsStatus.Listener, Loca
     private LocationManager lm;
 
     private int nsat, msat;
+    private Double alt;
     private String providerSelect;
     private RequestQueue queue;
 
@@ -92,7 +93,7 @@ public class LocationService extends Service implements GpsStatus.Listener, Loca
 
         }else {
             //lm.requestLocationUpdates(providerSelect, 0, 2 , (LocationListener) this);
-            lm.requestLocationUpdates(providerSelect, Constants.FREQUENCY_SECOND * 1000,2 , (LocationListener) this);
+            lm.requestLocationUpdates(providerSelect, Constants.FREQUENCY_SECOND *1000, 2, (LocationListener) this);
             lm.addGpsStatusListener(this);
         }
 
