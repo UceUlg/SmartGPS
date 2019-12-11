@@ -17,6 +17,7 @@ import androidx.annotation.Nullable;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.util.Log;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -27,6 +28,7 @@ import java.net.ProtocolException;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 
@@ -52,6 +54,7 @@ public class MainService extends Service {
     private Sensor sensorObject;
     private Sensor sensorActual;
     private float varProximity;
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat(Constants.FORMAT_DATE);
 
     private SQLiteController dbSensor;
 
@@ -356,7 +359,7 @@ public class MainService extends Service {
     }
 
     public int processData(int count){
-
+//        executeTask();
         int lastIdOld = dbSensor.getLastData().getInt(0);
         Sensor sensorOld = null;
         if(dbSensor.getData(lastIdOld).getCount() > 0) {
@@ -368,11 +371,14 @@ public class MainService extends Service {
         }
 
         if(Utilidades.setSensorObject(sensorObject, sensorOld)) {
-            dbSensor.insertData(new Gson().toJson(sensorObject));
-            System.out.println("*************************************************************");
-            System.out.println(sensorObject);
-            System.out.println("*************************************************************");
-            Log.i(TAG+".processData", String.valueOf("Count: "+dbSensor.countRowsData()+" - "+sensorObject.toString()));
+            if(sensorObject.getDateInsert() != null){
+                Gson gson = new GsonBuilder().setDateFormat(Constants.FORMAT_DATE).create();
+                dbSensor.insertData(gson.toJson(sensorObject));
+                System.out.println("*************************************************************");
+                System.out.println(sensorObject);
+                System.out.println("*************************************************************");
+                Log.i(TAG+".processData", String.valueOf("Count: "+dbSensor.countRowsData()+" - "+sensorObject.toString()));
+            }
             executeTask();
             count = 0;
 

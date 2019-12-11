@@ -4,6 +4,7 @@ package be.uliege.uce.smartgps.activities;
 import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.IntentSender;
@@ -15,10 +16,13 @@ import android.os.Bundle;
 import android.os.Handler;
 import androidx.annotation.NonNull;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -44,6 +48,7 @@ import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStates;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.gson.Gson;
+import com.onesignal.OneSignal;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -457,6 +462,7 @@ public class MainActivity extends AppCompatActivity {
                     //
                     txtProximity.setText(String.valueOf(sensorObject.getProximity()));
                     txtBattery.setText(String.valueOf(sensorObject.getBattery())+"%");
+                    txtSync.setText(getString(R.string.lblTxtSync) + dbSensor.getAllData().size());
                     //
                 }
             }
@@ -504,7 +510,7 @@ public class MainActivity extends AppCompatActivity {
                     txtVelocity.setText(df.format(sensorObject.getVelocity()).toString());
                     txtAltitude.setText(df.format(sensorObject.getAltitude()).toString() + " m");
 
-                    txtSync.setText(getString(R.string.lblTxtSync) + dbSensor.getAllData().size());
+//                    txtSync.setText(getString(R.string.lblTxtSync) + dbSensor.getAllData().size());
                     txtTime.setText(new Date().toString());
                 }
             }
@@ -649,6 +655,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        OneSignal.clearOneSignalNotifications();
         if (gpsLocationReceiver != null){
             unregisterReceiver(gpsLocationReceiver);
         }
@@ -661,5 +668,28 @@ public class MainActivity extends AppCompatActivity {
 
     public Context consContext (){
         return mContext;
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            closeAplication();
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+    private void closeAplication() {
+        final AlertDialog buildes = new AlertDialog.Builder(MainActivity.this)
+                .setIcon(R.drawable.icon)
+                .setTitle(getString(R.string.lblCloseApplication))
+                .setCancelable(false)
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        android.os.Process.killProcess(android.os.Process.myPid());
+                    }
+                }).show();
     }
 }

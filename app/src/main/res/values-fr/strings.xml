@@ -61,6 +61,7 @@
     <string name="lblTxtGpsInfoLon">Longitude: </string>
     <string name="lblTxtGpsInfoLat">Latitude: </string>
     <string name="lblTxtSync">Non-synchronized data: </string>
+    <string name="lblCloseApplication">Fermer l\'application?</string>
 
     <!-- LocationService -->
     <string name="msgTittleNotification">¡Désactivé </string>

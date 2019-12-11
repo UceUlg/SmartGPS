@@ -20,6 +20,8 @@ public class Constants {
 
     public static final int SPLASH_TIME_IN_MILLISECONDS = 2000;
 
+    public static String FORMAT_DATE = "MMM dd, yyyy HH:mm:ss";
+
     //Tiempo para lanzar la notificación inicial en minutos
     public static final int TIME_FIRST_NOTIFICATION = 5;
     //Tiempo de espera para la respuesta inicial en minutos
