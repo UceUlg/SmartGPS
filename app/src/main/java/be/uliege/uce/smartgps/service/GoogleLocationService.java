@@ -92,7 +92,6 @@ public class GoogleLocationService extends Service implements GoogleApiClient.Co
 
     @Override
     public void onLocationChanged(Location location) {
-
         LocationManager manager = (LocationManager) getSystemService(LOCATION_SERVICE);
         if (manager.isProviderEnabled(LocationManager.GPS_PROVIDER) == false) {
 

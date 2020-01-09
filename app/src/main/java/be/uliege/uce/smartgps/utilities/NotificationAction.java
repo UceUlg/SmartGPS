@@ -5,6 +5,7 @@ import android.os.CountDownTimer;
 import android.util.Log;
 
 import com.android.volley.Cache;
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Network;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -35,12 +36,14 @@ import be.uliege.uce.smartgps.service.SensorService;
 public class NotificationAction extends Application {
 
     private NotificationOneSignal nos = new NotificationOneSignal();
-    MainActivity ma = new MainActivity();
     SensorService ss = new SensorService();
 
     private String notificationID = "";
     private String pregunta;
     private String QUESTION_DEFAULT = "";
+
+    static final int DEFAULT_CHECK = 0;
+    static int check = 0;
 
     static CountDownTimer withoutCounter;
 
@@ -72,50 +75,54 @@ public class NotificationAction extends Application {
             JSONArray array = object.optJSONArray("actionButtons");
             pregunta = result.notification.payload.body;
 
-            if(actionType == OSNotificationAction.ActionType.ActionTaken){
-                for (int i = 0; i < array.length(); i++) {
-                    try{
-                        JSONObject objectButton = array.getJSONObject(i);
-                        Timestamp time = new Timestamp(System.currentTimeMillis());
-                        if(result.action.actionID.equals(objectButton.getString("id"))){
-                            String respuesta = objectButton.getString("id");
-                            String txtRespuesta = objectButton.getString("text");
-                            User user = new Gson().fromJson(DataSession.returnDataSession(getApplicationContext(), Constants.INFO_SESSION_KEY), User.class);
-                            Map<String, String> params = new HashMap<>();
-                            params.put("type", "setNotificationAnswer");
-                            params.put("dspId", String.valueOf(user.getDspId()));
-                            params.put("rpPregunta", pregunta);
-                            params.put("rpRespuesta", respuesta);
-                            params.put("rpFecha", time.toString());
-                            saveNotificationAnswer(params);
-                            if(txtRespuesta.equals("Si")){
-                                ss.timeWithoutAnswer(0);
-                                Map<String, String> paramsS = new HashMap<>();
-                                paramsS.put("type", "getNotificationQuestion");
-                                paramsS.put("pregId", "2");
-                                getQuestionNotification(paramsS);
-                                timeWithoutAnswer(1);
-                            }else if(txtRespuesta.equals("No")){
-                                ss.timeWithoutAnswer(0);
-                                ss.timeNewNotification();
+            int cn = checkNotification(1);
+
+            if(cn < 2){
+                if(actionType == OSNotificationAction.ActionType.ActionTaken){
+                    for (int i = 0; i < array.length(); i++) {
+                        try{
+                            JSONObject objectButton = array.getJSONObject(i);
+                            Timestamp time = new Timestamp(System.currentTimeMillis());
+                            if(result.action.actionID.equals(objectButton.getString("id"))){
+                                String respuesta = objectButton.getString("id");
+                                String txtRespuesta = objectButton.getString("text");
+                                User user = new Gson().fromJson(DataSession.returnDataSession(getApplicationContext(), Constants.INFO_SESSION_KEY), User.class);
+                                Map<String, String> params = new HashMap<>();
+                                params.put("type", "setNotificationAnswer");
+                                params.put("dspId", String.valueOf(user.getDspId()));
+                                params.put("rpPregunta", pregunta);
+                                params.put("rpRespuesta", respuesta);
+                                params.put("rpFecha", time.toString());
+                                saveNotificationAnswer(params);
+                                if(txtRespuesta.equals("Si")){
+                                    ss.timeWithoutAnswer(0);
+                                    Map<String, String> paramsS = new HashMap<>();
+                                    paramsS.put("type", "getNotificationQuestion");
+                                    paramsS.put("pregId", "2");
+                                    getQuestionNotification(paramsS);
+                                    timeWithoutAnswer(1);
+                                }else if(txtRespuesta.equals("No")){
+                                    ss.timeWithoutAnswer(0);
+                                    ss.timeNewNotification();
+                                }
+
+                                if(pregunta.equals("¿Medio de transporte?")){
+                                    timeWithoutAnswer(0);
+                                    Map<String, String> paramsS = new HashMap<>();
+                                    paramsS.put("type", "getNotificationQuestion");
+                                    paramsS.put("pregId", "3");
+                                    timeWithoutAnswer(1);
+                                    getQuestionNotification(paramsS);
+
+                                }else if(pregunta.equals("¿Proposito del viaje?")){
+                                    timeWithoutAnswer(0);
+                                    ss.timeNewNotification();
+                                }
+                                checkNotification(0);
                             }
-
-                            if(pregunta.equals("¿Medio de transporte?")){
-                                timeWithoutAnswer(0);
-                                Map<String, String> paramsS = new HashMap<>();
-                                paramsS.put("type", "getNotificationQuestion");
-                                paramsS.put("pregId", "3");
-                                timeWithoutAnswer(1);
-                                getQuestionNotification(paramsS);
-
-                            }else if(pregunta.equals("¿Proposito del viaje?")){
-                                timeWithoutAnswer(0);
-                                ss.timeNewNotification();
-                            }
-
+                        }catch (JSONException e){
+                            e.printStackTrace();
                         }
-                    }catch (JSONException e){
-                        e.printStackTrace();
                     }
                 }
             }
@@ -159,6 +166,7 @@ public class NotificationAction extends Application {
                 return params;
             }
         };
+        postRequest.setRetryPolicy(new DefaultRetryPolicy(5*1000, 0, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         queue.add(postRequest);
     }
 
@@ -200,6 +208,7 @@ public class NotificationAction extends Application {
                 return params;
             }
         };
+        postRequest.setRetryPolicy(new DefaultRetryPolicy(5*1000, 1, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         queue.add(postRequest);
     }
 
@@ -230,5 +239,14 @@ public class NotificationAction extends Application {
         ss.checkNotification(0);
         pregunta = QUESTION_DEFAULT;
         OneSignal.clearOneSignalNotifications();
+    }
+
+    public int checkNotification (int valor){
+        if(valor == 1){
+            check = check + valor;
+        }else if(valor == 0) {
+            check = DEFAULT_CHECK;
+        }
+        return check;
     }
 }

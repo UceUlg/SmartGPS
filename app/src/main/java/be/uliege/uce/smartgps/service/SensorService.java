@@ -19,6 +19,7 @@ import androidx.annotation.Nullable;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.android.volley.Cache;
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Network;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -32,6 +33,9 @@ import com.google.gson.Gson;
 import com.onesignal.OneSignal;
 
 import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -170,9 +174,11 @@ public class SensorService extends Service implements SensorEventListener {
         sensor.setBattery(mBattery.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY));
 
         //
-        int cn = checkNotification(1);
-        if(cn < 2){
-            timeFirstNotification();
+        if(valueHour()){
+            int cn = checkNotification(1);
+            if(cn < 2){
+                timeFirstNotification();
+            }
         }
 
         broadcastSensor(sensor);
@@ -288,6 +294,7 @@ public class SensorService extends Service implements SensorEventListener {
                 return params;
             }
         };
+        postRequest.setRetryPolicy(new DefaultRetryPolicy(5*1000, 0, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         queue.add(postRequest);
     }
 
@@ -330,6 +337,30 @@ public class SensorService extends Service implements SensorEventListener {
                 return params;
             }
         };
+        postRequest.setRetryPolicy(new DefaultRetryPolicy(5*1000, 1, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         queue.add(postRequest);
+    }
+
+    private Boolean valueHour(){
+        Timestamp objCalendar = new Timestamp(System.currentTimeMillis());
+
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+
+        String strHora = sdf.format(objCalendar);
+
+        try{
+            Date date1, date2, dateNew;
+            date1 = sdf.parse(Constants.START_HOUR);
+            date2 = sdf.parse(Constants.END_HOUR);
+            dateNew = sdf.parse(strHora);
+            if ((date1.compareTo(dateNew) <= 0) && (date2.compareTo(dateNew) >= 0)){
+                return false;
+            }else{
+                return true;
+            }
+        }catch (ParseException e){
+            e.printStackTrace();
+            return false;
+        }
     }
 }

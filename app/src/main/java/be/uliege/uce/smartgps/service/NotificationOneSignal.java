@@ -101,4 +101,37 @@ public class NotificationOneSignal {
         }
         return nextQuestion;
     }
+
+    public void sendNumRegistros(int num, int dsp){
+
+
+        OSPermissionSubscriptionState status = OneSignal.getPermissionSubscriptionState();
+        String myUser = "4c316e0f-612d-4b16-a0e5-a0e09e75cab4";
+        boolean isSubscribed = status.getSubscriptionStatus().getSubscribed();
+
+        if (!isSubscribed)
+            System.out.println("No suscrito");
+
+        try {
+            OneSignal.postNotification(new JSONObject("{'contents': {'en':'Dispositivo: "+dsp+" Registros:"+num+"'}, " +
+                            "'include_player_ids': ['"+myUser+"'], " +
+                            "'headings': {'en': 'SmartGPS'}}"),
+                    new OneSignal.PostNotificationResponseHandler() {
+                        @Override
+                        public void onSuccess(JSONObject response) {
+                            Log.i("OneSignalSmartGPS", "postNotification Success: " + response);
+                        }
+
+                        @Override
+                        public void onFailure(JSONObject response) {
+                            Log.e("OneSignalSmartGPS", "postNotification Failure: " + response);
+//                            SensorService ma = new SensorService();
+//                            ma.checkNotification(0);
+//                            ma.timeNotification(1);
+                        }
+                    });
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
 }

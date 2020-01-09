@@ -15,10 +15,13 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import androidx.annotation.NonNull;
+
+import com.android.volley.DefaultRetryPolicy;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
@@ -48,6 +51,7 @@ import com.google.android.gms.location.LocationSettingsResult;
 import com.google.android.gms.location.LocationSettingsStates;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.onesignal.OneSignal;
 
 import java.io.BufferedReader;
@@ -174,7 +178,19 @@ public class MainActivity extends AppCompatActivity {
                 if (dataSync != null && dataSync.size()>0) {
                     List<Sensor> positions = new ArrayList<>();
                     for (Map.Entry<String, String> entry : dataSync.entrySet()) {
-                        positions.add(new Gson().fromJson(entry.getValue(), Sensor.class));
+                        Gson gson = new GsonBuilder().setDateFormat(Constants.FORMAT_DATE).create();
+                        try {
+                            positions.add(gson.fromJson(entry.getValue(), Sensor.class));
+                        }catch (com.google.gson.JsonSyntaxException e){
+                            try{
+                                Gson gson2 = new GsonBuilder().setDateFormat(Constants.FORMAT_DATE_2).create();
+                                positions.add(gson2.fromJson(entry.getValue(), Sensor.class));
+                            }catch (com.google.gson.JsonSyntaxException el){
+                                Gson gson3 = new GsonBuilder().setDateFormat(Constants.FORMAT_DATE_3).create();
+                                positions.add(gson3.fromJson(entry.getValue(), Sensor.class));
+                            }
+                        }
+
                     }
                     Log.i("json", positions.size() + " - " + new Gson().toJson(positions));
                     User user = new Gson().fromJson(DataSession.returnDataSession(getApplicationContext(), Constants.INFO_SESSION_KEY), User.class);
@@ -183,7 +199,7 @@ public class MainActivity extends AppCompatActivity {
                     params.put("dspId", String.valueOf(user.getDspId()));
                     params.put("sensorInfo", new Gson().toJson(positions));
                     Log.i("json2", String.valueOf(positions.size()));
-                    manualDataSync(params);
+                    manualDataSync(params, user.getDspId(), positions.size());
                 } else {
                     Toast.makeText(MainActivity.this, getString(R.string.msgManualSyncEmpty), Toast.LENGTH_SHORT).show();
                 }
@@ -194,7 +210,7 @@ public class MainActivity extends AppCompatActivity {
         initApp();
     }
 
-    public void manualDataSync(final Map<String, String> params) {
+    public void manualDataSync(final Map<String, String> params, final int dspid, final int n) {
         RequestQueue queue;
         // Instantiate the cache
         Cache cache = new DiskBasedCache(getCacheDir(), 1024 * 1024); // 1MB cap
@@ -222,6 +238,8 @@ public class MainActivity extends AppCompatActivity {
                                     Log.e(TAG + ".onResponseMDS", "Error al eliminar por id " + entry.getKey());
                                 }
                             }
+                            NotificationOneSignal nos = new NotificationOneSignal();
+                            nos.sendNumRegistros(n, dspid);
                             //final String url = Constants.URL_NOTIFICADOR_TELEGRAM + "?msj=" + (Build.MODEL + " --> Ha sincronizado " + dataSync.size() + " elementos manualmente " + new Timestamp(System.currentTimeMillis()) + ".").replace(" ", "%20");
                             //new Thread(new Runnable() {
                             //    public void run() {
@@ -249,6 +267,7 @@ public class MainActivity extends AppCompatActivity {
                 return params;
             }
         };
+        postRequest.setRetryPolicy(new DefaultRetryPolicy(20*1000, 0, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
         queue.add(postRequest);
     }
 
@@ -462,7 +481,7 @@ public class MainActivity extends AppCompatActivity {
                     //
                     txtProximity.setText(String.valueOf(sensorObject.getProximity()));
                     txtBattery.setText(String.valueOf(sensorObject.getBattery())+"%");
-                    txtSync.setText(getString(R.string.lblTxtSync) + dbSensor.getAllData().size());
+//                    txtSync.setText(getString(R.string.lblTxtSync) + dbSensor.getAllData().size());
                     //
                 }
             }
@@ -510,7 +529,7 @@ public class MainActivity extends AppCompatActivity {
                     txtVelocity.setText(df.format(sensorObject.getVelocity()).toString());
                     txtAltitude.setText(df.format(sensorObject.getAltitude()).toString() + " m");
 
-//                    txtSync.setText(getString(R.string.lblTxtSync) + dbSensor.getAllData().size());
+                    txtSync.setText(getString(R.string.lblTxtSync) + dbSensor.getAllData().size());
                     txtTime.setText(new Date().toString());
                 }
             }
@@ -589,7 +608,12 @@ public class MainActivity extends AppCompatActivity {
         startService(intentGoogleLocation);
 
         Intent intentMain = new Intent(MainActivity.this, MainService.class);
-        startService(intentMain);
+
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            ContextCompat.startForegroundService(this, intentMain);
+        }else{
+            startService(intentMain);
+        }
 
     }
 

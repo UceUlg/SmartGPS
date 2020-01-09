@@ -11,7 +11,6 @@ public class Constants {
     public static final String SENSOR_ACTIVITY = "sensorData";
     public static final String GOOGLE_LOCATION_ACTIVITY = "googleLocationData";
     public static final String GPS_ACTIVITY = "gpsData";
-    public static final String AUDIO_ACTIVITY = "audioData";
 
     public static final String URL_SERVER = "http://www.gmoncayoresearch.com";
     public static final String URL_SERVICE = "/SmartGPS/api";
@@ -20,7 +19,13 @@ public class Constants {
 
     public static final int SPLASH_TIME_IN_MILLISECONDS = 2000;
 
-    public static String FORMAT_DATE = "MMM dd, yyyy HH:mm:ss";
+    public static String FORMAT_DATE = "MMM dd, yyyy hh:mm:ss aa";
+    public static String FORMAT_DATE_2 = "MMM dd, yyyy HH:mm:ss";
+    public static String FORMAT_DATE_3 = "dd MMM, yyyy HH:mm:ss";
+
+    //Intervalo de horas para enviar notificaciones
+    public static String START_HOUR = "00:00";
+    public static String END_HOUR = "05:00";
 
     //Tiempo para lanzar la notificación inicial en minutos
     public static final int TIME_FIRST_NOTIFICATION = 5;
@@ -42,8 +47,4 @@ public class Constants {
     public static String URL_CONSUMMER = URL_SERVER+URL_SERVICE_SMART_GPS+"/consummer.php";
 
     public static int TIME_RECOVER = 30;
-
-    public static int FIRST_NOTIFICATION = 5;
-    public static int UNANSWERED_NOTIFICACION = 15;
-    public static int TIME_NEXT_NOTIFICATION = 60;
 }

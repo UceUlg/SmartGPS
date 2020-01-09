@@ -2,6 +2,9 @@ package be.uliege.uce.smartgps.service;
 
 import android.app.ActivityManager;
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -32,6 +35,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 
+import be.uliege.uce.smartgps.R;
 import be.uliege.uce.smartgps.activities.MainActivity;
 import be.uliege.uce.smartgps.dataBase.SQLiteController;
 import be.uliege.uce.smartgps.entities.Sensor;
@@ -40,6 +44,8 @@ import be.uliege.uce.smartgps.utilities.NotificationUtils;
 import be.uliege.uce.smartgps.utilities.Utilidades;
 
 import static be.uliege.uce.smartgps.utilities.Utilidades.timerInterval;
+
+import androidx.core.app.NotificationCompat;
 
 public class MainService extends Service {
 
@@ -247,7 +253,38 @@ public class MainService extends Service {
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiverLocation, new IntentFilter(Constants.LOCATION_ACTIVITY));
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcastReceiverGoogleLocation, new IntentFilter(Constants.GOOGLE_LOCATION_ACTIVITY));
 
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            Intent notificationIntent = new Intent(this, MainActivity.class);
+            PendingIntent pendingIntent = PendingIntent.getActivity(this,
+                    0, notificationIntent, 0);
+
+            createNotificationChannel();
+
+            Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+                    .setContentTitle("SmartGPS")
+                    .setContentText("Ejecucion en segundo plano")
+                    .setSmallIcon(R.drawable.icon)
+                    .setContentIntent(pendingIntent)
+                    .build();
+
+            startForeground(1, notification);
+        }
+
         return START_STICKY;
+    }
+
+    public static final String CHANNEL_ID = "ServiceChannel";
+    private void createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel serviceChannel = new NotificationChannel(
+                    CHANNEL_ID,
+                    "Service Channel",
+                    NotificationManager.IMPORTANCE_DEFAULT
+            );
+
+            NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            manager.createNotificationChannel(serviceChannel);
+        }
     }
 
     @Nullable
@@ -363,7 +400,18 @@ public class MainService extends Service {
         int lastIdOld = dbSensor.getLastData().getInt(0);
         Sensor sensorOld = null;
         if(dbSensor.getData(lastIdOld).getCount() > 0) {
-            sensorOld = new Gson().fromJson(dbSensor.getData(lastIdOld).getString(1), Sensor.class);
+            Gson gson = new GsonBuilder().setDateFormat(Constants.FORMAT_DATE).create();
+            try {
+                sensorOld = gson.fromJson(dbSensor.getData(lastIdOld).getString(1), Sensor.class);
+            }catch (com.google.gson.JsonSyntaxException e){
+                try{
+                    Gson gson2 = new GsonBuilder().setDateFormat(Constants.FORMAT_DATE_2).create();
+                    sensorOld = gson2.fromJson(dbSensor.getData(lastIdOld).getString(1), Sensor.class);
+                }catch (com.google.gson.JsonSyntaxException el){
+                    Gson gson3 = new GsonBuilder().setDateFormat(Constants.FORMAT_DATE_3).create();
+                    sensorOld = gson3.fromJson(dbSensor.getData(lastIdOld).getString(1), Sensor.class);
+                }
+            }
         }
 
         if(sensorObject.getLuminosity() == null){
@@ -372,8 +420,8 @@ public class MainService extends Service {
 
         if(Utilidades.setSensorObject(sensorObject, sensorOld)) {
             if(sensorObject.getDateInsert() != null){
-                Gson gson = new GsonBuilder().setDateFormat(Constants.FORMAT_DATE).create();
-                dbSensor.insertData(gson.toJson(sensorObject));
+//                Gson gson = new GsonBuilder().setDateFormat(Constants.FORMAT_DATE).create();
+                dbSensor.insertData(new Gson().toJson(sensorObject));
                 System.out.println("*************************************************************");
                 System.out.println(sensorObject);
                 System.out.println("*************************************************************");
@@ -389,7 +437,20 @@ public class MainService extends Service {
                 int lastId = dbSensor.getLastData().getInt(0);
 
                 if(dbSensor.getData(lastId).getCount() > 0) {
-                    Sensor sensor = new Gson().fromJson(dbSensor.getData(lastId).getString(1), Sensor.class);
+                    Sensor sensor;
+                    Gson gson = new GsonBuilder().setDateFormat(Constants.FORMAT_DATE).create();
+                    try {
+                        sensor = gson.fromJson(dbSensor.getData(lastId).getString(1), Sensor.class);
+                    }catch (com.google.gson.JsonSyntaxException e){
+                        try{
+                            Gson gson2 = new GsonBuilder().setDateFormat(Constants.FORMAT_DATE_2).create();
+                            sensor = gson2.fromJson(dbSensor.getData(lastId).getString(1), Sensor.class);
+                        }catch (com.google.gson.JsonSyntaxException el){
+                            Gson gson3 = new GsonBuilder().setDateFormat(Constants.FORMAT_DATE_3).create();
+                            sensor = gson3.fromJson(dbSensor.getData(lastId).getString(1), Sensor.class);
+                        }
+                    }
+                    //Sensor sensor = new Gson().fromJson(dbSensor.getData(lastId).getString(1), Sensor.class);
                     sensor.setDateUpdate(new Timestamp(System.currentTimeMillis()));
 
                     LocationManager manager = (LocationManager) getSystemService(LOCATION_SERVICE);
