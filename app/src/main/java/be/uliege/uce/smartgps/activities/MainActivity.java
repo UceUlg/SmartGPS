@@ -238,8 +238,8 @@ public class MainActivity extends AppCompatActivity {
                                     Log.e(TAG + ".onResponseMDS", "Error al eliminar por id " + entry.getKey());
                                 }
                             }
-                            NotificationOneSignal nos = new NotificationOneSignal();
-                            nos.sendNumRegistros(n, dspid);
+//                            NotificationOneSignal nos = new NotificationOneSignal();
+//                            nos.sendNumRegistros(n, dspid);
                             //final String url = Constants.URL_NOTIFICADOR_TELEGRAM + "?msj=" + (Build.MODEL + " --> Ha sincronizado " + dataSync.size() + " elementos manualmente " + new Timestamp(System.currentTimeMillis()) + ".").replace(" ", "%20");
                             //new Thread(new Runnable() {
                             //    public void run() {

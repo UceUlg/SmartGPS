@@ -66,6 +66,7 @@ public class SensorService extends Service implements SensorEventListener {
     MainActivity ma = new MainActivity();
     private static CountDownTimer withoutCounter;
     private Context contexto;
+    private Timestamp timeCreate;
 
     private float proxi;
     private int count;
@@ -251,6 +252,7 @@ public class SensorService extends Service implements SensorEventListener {
         params.put("rpPregunta", preg);
         params.put("rpRespuesta", "-1");
         params.put("rpFecha", time.toString());
+        params.put("rpFechaCreacion", timeCreate.toString());
         saveNoNotificationAnswer(params);
         checkNotification(0);
         pregunta = QUESTION_DEFAULT;
@@ -317,6 +319,7 @@ public class SensorService extends Service implements SensorEventListener {
                     public void onResponse(String response) {
                         Log.d("PreguntaNotificacion", response);
                         if (response != null) {
+                            timeCreate = new Timestamp(System.currentTimeMillis());
                             pregunta = nos.sendFirstNotification(response);
                             response = null;
                         } else {

@@ -14,7 +14,7 @@ public class Constants {
 
     public static final String URL_SERVER = "http://www.gmoncayoresearch.com";
     public static final String URL_SERVICE = "/SmartGPS/api";
-    public static final String URL_SERVICE_SMART_GPS = "/SmartGPS/apiv2";
+    public static final String URL_SERVICE_SMART_GPS = "/SmartGPS/apiv3";
     //public static final String URL_NOTIFICADOR_TELEGRAM = URL_SERVER +URL_SERVICE+"/notificadorTelegram.php";
 
     public static final int SPLASH_TIME_IN_MILLISECONDS = 2000;

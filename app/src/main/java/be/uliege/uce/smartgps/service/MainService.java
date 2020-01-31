@@ -262,7 +262,7 @@ public class MainService extends Service {
 
             Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                     .setContentTitle("SmartGPS")
-                    .setContentText("Ejecucion en segundo plano")
+                    .setContentText("Ejecución en segundo plano")
                     .setSmallIcon(R.drawable.icon)
                     .setContentIntent(pendingIntent)
                     .build();

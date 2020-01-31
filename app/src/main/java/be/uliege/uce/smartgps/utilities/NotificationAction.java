@@ -28,7 +28,6 @@ import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
 
-import be.uliege.uce.smartgps.activities.MainActivity;
 import be.uliege.uce.smartgps.entities.User;
 import be.uliege.uce.smartgps.service.NotificationOneSignal;
 import be.uliege.uce.smartgps.service.SensorService;
@@ -39,11 +38,13 @@ public class NotificationAction extends Application {
     SensorService ss = new SensorService();
 
     private String notificationID = "";
+    private long milisNotif;
     private String pregunta;
     private String QUESTION_DEFAULT = "";
 
     static final int DEFAULT_CHECK = 0;
     static int check = 0;
+
 
     static CountDownTimer withoutCounter;
 
@@ -64,6 +65,14 @@ public class NotificationAction extends Application {
         @Override
         public void notificationReceived(OSNotification notification){
             notificationID = notification.payload.notificationID;
+            String a = notification.payload.rawPayload;
+            try {
+                JSONObject as = new JSONObject(a);
+                milisNotif = as.getLong("google.sent_time");
+            }catch (JSONException e){
+                e.printStackTrace();
+            }
+
         }
     }
 
@@ -82,10 +91,12 @@ public class NotificationAction extends Application {
                     for (int i = 0; i < array.length(); i++) {
                         try{
                             JSONObject objectButton = array.getJSONObject(i);
-                            Timestamp time = new Timestamp(System.currentTimeMillis());
                             if(result.action.actionID.equals(objectButton.getString("id"))){
+                                Timestamp time = new Timestamp(System.currentTimeMillis());
+                                Timestamp timeCrea = new Timestamp(milisNotif);
                                 String respuesta = objectButton.getString("id");
                                 String txtRespuesta = objectButton.getString("text");
+                                OneSignal.clearOneSignalNotifications();
                                 User user = new Gson().fromJson(DataSession.returnDataSession(getApplicationContext(), Constants.INFO_SESSION_KEY), User.class);
                                 Map<String, String> params = new HashMap<>();
                                 params.put("type", "setNotificationAnswer");
@@ -93,6 +104,7 @@ public class NotificationAction extends Application {
                                 params.put("rpPregunta", pregunta);
                                 params.put("rpRespuesta", respuesta);
                                 params.put("rpFecha", time.toString());
+                                params.put("rpFechaCreacion", timeCrea.toString());
                                 saveNotificationAnswer(params);
                                 if(txtRespuesta.equals("Si")){
                                     ss.timeWithoutAnswer(0);
@@ -228,6 +240,7 @@ public class NotificationAction extends Application {
 
     public void withoutAnswer(String preg){
         Timestamp time = new Timestamp(System.currentTimeMillis());
+        Timestamp timeCrea = new Timestamp(milisNotif);
         User user = new Gson().fromJson(DataSession.returnDataSession(getApplicationContext(), Constants.INFO_SESSION_KEY), User.class);
         Map<String, String> params = new HashMap<>();
         params.put("type", "setNotificationAnswer");
@@ -235,6 +248,7 @@ public class NotificationAction extends Application {
         params.put("rpPregunta", preg);
         params.put("rpRespuesta", "-1");
         params.put("rpFecha", time.toString());
+        params.put("rpFechaCreacion", timeCrea.toString());
         saveNotificationAnswer(params);
         ss.checkNotification(0);
         pregunta = QUESTION_DEFAULT;
